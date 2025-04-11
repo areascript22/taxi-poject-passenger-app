@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
-import 'package:passenger_app/features/ride_history/view/widgets/circle_button.dart';
 import 'package:passenger_app/features/ride_history/view/widgets/custom_devider.dart';
 import 'package:passenger_app/features/ride_history/viewmodel/ride_history_viewmodel.dart';
-import 'package:passenger_app/shared/models/g_user.dart';
+import 'package:passenger_app/shared/models/passenger_model.dart';
 import 'package:passenger_app/shared/util/shared_util.dart';
+import 'package:passenger_app/shared/widgets/circle_button.dart';
 import 'package:provider/provider.dart';
 
 class PassengerInfoTile extends StatelessWidget {
-  final String passengerId;
+  final String driverId;
   const PassengerInfoTile({
     super.key,
-    required this.passengerId,
+    required this.driverId,
   });
 
   @override
@@ -19,8 +19,8 @@ class PassengerInfoTile extends StatelessWidget {
     final sharedUtil = SharedUtil();
     final rideHistoryViewmodel =
         Provider.of<RideHistoryViewmodel>(context, listen: false);
-    return FutureBuilder<GUser?>(
-      future: rideHistoryViewmodel.getPassengerById(passengerId),
+    return FutureBuilder(
+      future: rideHistoryViewmodel.getPassengerById(driverId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
@@ -40,7 +40,7 @@ class PassengerInfoTile extends StatelessWidget {
               ),
             );
           }
-          GUser passenger = snapshot.data!;
+          PassengerModel passenger = snapshot.data!;
           return Column(
             children: [
               //Passenger info
@@ -76,6 +76,7 @@ class PassengerInfoTile extends StatelessWidget {
                     //Remaining info
                     const SizedBox(width: 10),
                     Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           '${passenger.name} ${passenger.lastName}',
@@ -103,10 +104,10 @@ class PassengerInfoTile extends StatelessWidget {
               Row(
                 children: [
                   CircleButton(
-                    icon: Icons.call_outlined,
+                    icon: Ionicons.logo_whatsapp,
                     label: "Contactar",
                     onPressed: () {
-                      sharedUtil.sendSMS(passenger.phone, '');
+                      sharedUtil.launchWhatsApp(passenger.phone);
                     },
                   ),
                 ],

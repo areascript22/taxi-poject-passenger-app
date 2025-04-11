@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -21,7 +22,9 @@ import 'package:passenger_app/shared/util/shared_util.dart';
 import 'package:passenger_app/shared/widgets/loading_overlay.dart';
 
 class DeliveryRequestViewModel extends ChangeNotifier {
-  final String apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
+  final String apiKey = Platform.isAndroid
+      ? dotenv.env['GOOGLE_MAPS_API_KEY_ANDROID'] ?? ''
+      : dotenv.env['GOOGLE_MAPS_API_KEY_IOS'] ?? '';
   final logger = Logger();
   final sharedUtil = SharedUtil();
   bool _loading = false;

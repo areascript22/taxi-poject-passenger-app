@@ -42,7 +42,6 @@ class WitingForDriverOverlay extends StatelessWidget {
                 //Cancel Button
                 const SizedBox(height: 20),
                 CustomElevatedButton(
-                  color: Colors.blue,
                   onTap: () async {
                     await sharedProvider.cancelRequest();
                   },

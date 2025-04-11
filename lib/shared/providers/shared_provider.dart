@@ -186,6 +186,7 @@ class SharedProvider extends ChangeNotifier {
     }
     await SharedService.removeDriverRequest(passengerId);
     deliveryLookingForDriver = false;
+    SharedService.removeDriverRequestData(passengerId);
   }
 
   //Animate camera given an location point

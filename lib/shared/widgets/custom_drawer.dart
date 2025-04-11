@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:passenger_app/features/profile/view/pages/edit_profile_page.dart';
 import 'package:passenger_app/features/ride_history/view/pages/ride_history_page.dart';
+import 'package:passenger_app/features/ride_history/view/widgets/custom_devider.dart';
 import 'package:passenger_app/features/settings/view/pages/settings_page.dart';
+import 'package:passenger_app/features/tabout_us/view/pages/about_us_page.dart';
 
 import 'package:passenger_app/features/technical_support/view/pages/technical_support.dart';
 import 'package:passenger_app/shared/models/g_user.dart';
@@ -90,7 +92,7 @@ class CustomDrawer extends StatelessWidget {
                       ],
                     ),
                   ),
-
+                const CustomDevider(),
                 const SizedBox(height: 20),
 
                 //Perfil
@@ -143,14 +145,21 @@ class CustomDrawer extends StatelessWidget {
                 ),
 
                 //About us
-                ListTile(
-                  leading: const Icon(Icons.info_outline_rounded),
-                  title: const Text(
-                    "Acerca de",
-                    style: TextStyle(fontSize: 17),
-                  ),
-                  onTap: () async {},
-                ),
+                // ListTile(
+                //   leading: const Icon(Icons.info_outline_rounded),
+                //   title: const Text(
+                //     "Acerca de",
+                //     style: TextStyle(fontSize: 17),
+                //   ),
+                //   onTap: () async {
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(
+                //         builder: (_) => const AboutUsPage(),
+                //       ),
+                //     );
+                //   },
+                // ),
               ],
             ),
 

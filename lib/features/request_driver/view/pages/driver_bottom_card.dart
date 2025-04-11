@@ -6,9 +6,9 @@ import 'package:passenger_app/features/map/view/widgets/circular_button.dart';
 import 'package:passenger_app/shared/models/driver_model.dart';
 import 'package:passenger_app/shared/models/request_type.dart';
 import 'package:passenger_app/shared/providers/shared_provider.dart';
+import 'package:passenger_app/shared/util/shared_util.dart';
 import 'package:passenger_app/shared/widgets/user_avatar.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class DriverBottomCard extends StatefulWidget {
   const DriverBottomCard({super.key});
@@ -19,6 +19,7 @@ class DriverBottomCard extends StatefulWidget {
 
 class _DriverBottomCardState extends State<DriverBottomCard> {
   final Logger logger = Logger();
+  final sharedUtil = SharedUtil();
   @override
   Widget build(BuildContext context) {
     final SharedProvider sharedProvider = Provider.of<SharedProvider>(context);
@@ -168,8 +169,8 @@ class _DriverBottomCardState extends State<DriverBottomCard> {
                       children: [
                         IconButton(
                           onPressed: () {
-                            _sendSMS(driverModel.phone, "Espenrando...");
                             //showDriverArrivedBotttomSheet(context);
+                            sharedUtil.launchWhatsApp(driverModel.phone);
                           },
                           icon: const Icon(
                             Ionicons.chatbubble_ellipses_outline,
@@ -186,24 +187,5 @@ class _DriverBottomCardState extends State<DriverBottomCard> {
         ),
       ],
     );
-  }
-
-  // Function to send SMS
-  void _sendSMS(String phoneNumber, String message) async {
-    final Uri smsUri = Uri(
-      scheme: 'sms',
-      path: phoneNumber,
-      queryParameters: {'body': message},
-    );
-
-    try {
-      if (await canLaunchUrl(smsUri)) {
-        await launchUrl(smsUri);
-      } else {
-        throw 'Could not launch SMS: $smsUri';
-      }
-    } catch (e) {
-      logger.e('Error sending SMS: $e');
-    }
   }
 }

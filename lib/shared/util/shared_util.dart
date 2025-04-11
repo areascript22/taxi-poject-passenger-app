@@ -76,4 +76,33 @@ class SharedUtil {
     _audioTimer?.cancel();
     _audioTimer = null; // Reset the timer variable
   }
+
+  // lauch whatsapp
+  void launchWhatsApp(String phoneNumber, {String message = ''}) async {
+    final Uri whatsappUri = Uri.parse(
+        "https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}");
+
+    if (await canLaunchUrl(whatsappUri)) {
+      await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+    } else {
+      throw 'Could not launch WhatsApp';
+    }
+  }
+
+  //
+  Future<void> openEmailApp() async {
+    final Uri emailUri = Uri(
+      scheme: 'mailto',
+      path: 'taxigo11032025@gmail.com', // Cambia al email del administrador
+      queryParameters: {
+        'subject': 'Consulta desde la app',
+        'body': 'Hola, me gustaría hacer una consulta sobre...'
+      },
+    );
+    try {
+      await launchUrl(emailUri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      logger.e('No se pudo abrir la aplicación de correo, $e');
+    }
+  }
 }

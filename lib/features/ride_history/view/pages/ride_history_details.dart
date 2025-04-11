@@ -60,7 +60,7 @@ class RideHistoryDetails extends StatelessWidget {
               //Driver Info
               const CustomDevider(),
               PassengerInfoTile(
-                passengerId: ride.passengerId,
+                driverId: ride.driverId,
               ),
               //Comunication options
 

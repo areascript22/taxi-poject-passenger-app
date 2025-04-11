@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +26,9 @@ import 'package:passenger_app/shared/widgets/loading_overlay.dart';
 class RequestDriverViewModel extends ChangeNotifier {
   final service = FlutterBackgroundService();
   final Logger logger = Logger();
-  final String apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
+  final String apiKey = Platform.isAndroid
+      ? dotenv.env['GOOGLE_MAPS_API_KEY_ANDROID'] ?? ''
+      : dotenv.env['GOOGLE_MAPS_API_KEY_IOS'] ?? '';
   final SharedUtil sharedUtil = SharedUtil();
   String? _timefromTaxiToPickUp;
   LatLng? driverCurrenTCoords;
@@ -577,10 +580,10 @@ class RequestDriverViewModel extends ChangeNotifier {
       return;
     }
     //Start foreground services
-    if (!(await service.isRunning())) {
-      await service.startService();
-      service.invoke('setAsForeground', {'driverId': driverId});
-    }
+    // if (!(await service.isRunning())) {
+    //   await service.startService();
+    //   service.invoke('setAsForeground', {'driverId': driverId});
+    // }
     //start listener
     final databaseRef =
         FirebaseDatabase.instance.ref('drivers/$driverId/status');
@@ -604,12 +607,12 @@ class RequestDriverViewModel extends ChangeNotifier {
                 showDriverArrivedBotttomSheet(sharedProvider.mapPageContext!);
               }
               //   await sharedUtil.playAudio("sounds/taxi_espera.mp3");
-              //  await sharedUtil.repeatAudio("sounds/taxi_espera.mp3");
+              await sharedUtil.repeatAudio("sounds/taxi_espera.mp3");
               break;
             case DriverRideStatus.goingToDropOff:
               sharedProvider.driverStatus = DriverRideStatus.goingToDropOff;
               sharedProvider.routeDuration = null;
-              // sharedUtil.stopAudioLoop();
+              sharedUtil.stopAudioLoop();
               //  sharedProvider.topMessage = 'En marcha, vamos!!';
               break;
             case DriverRideStatus.finished:
@@ -619,6 +622,7 @@ class RequestDriverViewModel extends ChangeNotifier {
 
               break;
             case DriverRideStatus.canceled:
+              sharedUtil.stopAudioLoop();
               await RequestDriverService.removeDriverIdTemporally(passengerId);
               sharedProvider.driverStatus = DriverRideStatus.canceled;
               cancelDriverListeners();

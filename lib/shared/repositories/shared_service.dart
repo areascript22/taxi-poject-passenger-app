@@ -10,8 +10,8 @@ import 'package:logger/logger.dart';
 import 'package:passenger_app/shared/models/driver_model.dart';
 import 'package:passenger_app/shared/models/route_info.dart';
 
-
 class SharedService {
+  //It returns a route as polylines (it is use to update polyline in Porvider)
   //It returns a route as polylines (it is use to update polyline in Porvider)
   static Future<RouteInfo?> getRoutePolylinePoints(
       LatLng start, LatLng end, String apiKey) async {
@@ -35,10 +35,13 @@ class SharedService {
             routePoints.add(LatLng(point.latitude, point.longitude));
           });
         }
+        logger.i(
+            "Result getting route: ${result.durationTexts} type: ${result.durationTexts![0]}");
         return RouteInfo(
-          distance: "",
+          distance:
+              result.distanceTexts != null ? result.distanceTexts![0] : "0 km",
           duration:
-              result.durationTexts != null ? result.durationTexts![0] : "",
+              result.durationTexts != null ? result.durationTexts![0] : "0 min",
           polylinePoints: routePoints,
         );
       } on TimeoutException catch (e) {
@@ -113,14 +116,12 @@ class SharedService {
     final logger = Logger();
     try {
       final dbRef = FirebaseDatabase.instance.ref();
-      final storageRef =
-          FirebaseStorage.instance.ref('audio_requests/$passengerId.aac');
+
       final path = 'driver_requests/$passengerId'; //Driver request path
       final path2 = 'delivery_requests/$passengerId'; //Delivery request path
       // Remove data at the specified path
       await dbRef.child(path).remove();
       await dbRef.child(path2).remove();
-      await storageRef.delete();
       logger.i('Request removed successfully at $path');
       return true;
     } catch (e) {
@@ -129,9 +130,18 @@ class SharedService {
     }
   }
 
- 
-
-  
-
-
+  // Cancel driver request or delivery request when there are not drivers yet.
+  static Future<bool> removeDriverRequestData(String passengerId) async {
+    final logger = Logger();
+    try {
+      final storageRef =
+          FirebaseStorage.instance.ref('audio_requests/$passengerId.aac');
+      await storageRef.delete();
+      logger.i('Request storage removed');
+      return true;
+    } catch (e) {
+      logger.e('Error removing data: $e');
+      return false;
+    }
+  }
 }

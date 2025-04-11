@@ -90,4 +90,5 @@ dependencies {
 
     // ✅ Kotlin Standard Library
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'com.google.android.play:integrity:1.4.0'
 }

@@ -23,7 +23,7 @@ class _VerificationPageState extends State<VerificationPage> {
   bool _canResend = false;
 
   //
-  final Logger logger = Logger();
+  //final Logger logger = Logger();
   final TextEditingController textController = TextEditingController();
   final _formKey = GlobalKey<FormState>(); // Form key for validation
 

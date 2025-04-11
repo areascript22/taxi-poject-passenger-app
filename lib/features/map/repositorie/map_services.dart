@@ -9,7 +9,7 @@ import 'package:passenger_app/shared/models/route_info.dart';
 import 'package:uuid/uuid.dart';
 
 class MapServices {
-  static const  Uuid uuid = Uuid();
+  static const Uuid uuid = Uuid();
 
   //Get direction in text by passing Coordinates
   static Future<String?> getReadableAddress(
@@ -76,16 +76,21 @@ class MapServices {
   static Future<List<dynamic>> getAutocompletePlaces(
       String input, String apiKey) async {
     final Logger logger = Logger();
-    logger.i("Calling Autcomplete Place APIS");
+    logger.i("Calling Autocomplete Place API");
 
     try {
       String sessionToken = uuid.v4();
       String baseUrl =
           'https://maps.googleapis.com/maps/api/place/autocomplete/json';
+
+      // URL con restricciones para Riobamba, Ecuador y resultados en español
       String url =
-          '$baseUrl?input=$input&key=$apiKey&sessiontoken=$sessionToken&region=ec&components=country:ec&locationbias=rectangle:-4.507, -80.233, -3.438, -79.192';
+          '$baseUrl?input=$input&key=$apiKey&sessiontoken=$sessionToken'
+          '&location=-1.6649,-78.6543&radius=5000'
+          '&language=es&components=country:ec';
+
       var response = await http.get(Uri.parse(url));
-      //var data = json.decode(response.body);
+
       if (response.statusCode == 200) {
         return json.decode(response.body)['predictions'];
       } else {
@@ -176,6 +181,4 @@ class MapServices {
       return null;
     }
   }
-
- 
 }

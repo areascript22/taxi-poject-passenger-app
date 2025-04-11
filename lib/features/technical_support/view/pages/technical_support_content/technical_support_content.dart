@@ -39,11 +39,7 @@ class _TechnicalSupportContentState extends State<TechnicalSupportContent> {
             elevation: 0,
             title: const Text(
               'Soporte técnico',
-              style:
-                  TextStyle(fontWeight: FontWeight.bold, color: Colors.purple),
-              maxLines: 2,
             ),
-            iconTheme: const IconThemeData(color: Colors.purple),
           ),
         ),
       ),

@@ -1,24 +1,33 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:logger/logger.dart';
 import 'package:passenger_app/features/ride_history/repository/ride_history_service.dart';
-import 'package:passenger_app/shared/models/g_user.dart';
+import 'package:passenger_app/shared/models/passenger_model.dart';
 import 'package:passenger_app/shared/models/route_info.dart';
 import 'package:passenger_app/shared/repositories/shared_service.dart';
 
 class RideHistoryViewmodel extends ChangeNotifier {
   final logger = Logger();
-  final String apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
+  final String apiKey = Platform.isAndroid
+      ? dotenv.env['GOOGLE_MAPS_API_KEY_ANDROID'] ?? ''
+      : dotenv.env['GOOGLE_MAPS_API_KEY_IOS'] ?? '';
   Completer<GoogleMapController> mapController1 = Completer();
   Polyline _polylineFromPickUpToDropOff =
       const Polyline(polylineId: PolylineId("default"));
   Set<Marker> _markers = {};
+  String? _dropOffLocation;
+  String _duration = '0 mins';
+  String _distance = '0 km';
 
   //GETTERS
   Polyline get polylineFromPickUpToDropOff => _polylineFromPickUpToDropOff;
   Set<Marker> get markers => _markers;
+  String? get dropOffLocation => _dropOffLocation;
+  String get duration => _duration;
+  String get distance => _distance;
   //SETTERS
   set polylineFromPickUpToDropOff(Polyline value) {
     _polylineFromPickUpToDropOff = value;
@@ -27,6 +36,21 @@ class RideHistoryViewmodel extends ChangeNotifier {
 
   set markers(Set<Marker> value) {
     _markers = value;
+    notifyListeners();
+  }
+
+  set dropOffLocation(String? value) {
+    _dropOffLocation = value;
+    notifyListeners();
+  }
+
+  set duration(String value) {
+    _duration = value;
+    notifyListeners();
+  }
+
+  set distance(String value) {
+    _distance = value;
     notifyListeners();
   }
 
@@ -49,8 +73,12 @@ class RideHistoryViewmodel extends ChangeNotifier {
       point1: pickUpCoords,
       point2: dropOffCoords,
     );
+
     //draw route
     _drawRoute(pickUpCoords, dropOffCoords);
+    //Get drop off location
+    dropOffLocation = await RideHistoryService.getReadableAddress(
+        dropOffCoords.latitude, dropOffCoords.longitude, apiKey);
   }
 
   //add markers
@@ -115,18 +143,21 @@ class RideHistoryViewmodel extends ChangeNotifier {
       return;
     }
     polylineFromPickUpToDropOff = Polyline(
-        polylineId: const PolylineId("default"),
-        points: response.polylinePoints,
-        color: Colors.blue,
-        width: 5);
+      polylineId: const PolylineId("default"),
+      points: response.polylinePoints,
+      color: Colors.blue,
+      width: 5,
+    );
+    distance = response.distance;
+    duration = response.duration;
   }
 
   //Retrieve passenger model from Firestore
-  Future<GUser?> getPassengerById(String driverId) async {
+  Future<PassengerModel?> getPassengerById(String driverId) async {
     if (driverId.isEmpty) {
       logger.e("Passenger id is null");
       return null;
     }
-    return await RideHistoryService.getGUserById(driverId);
+    return await RideHistoryService.getPassengerById (driverId);
   }
 }

@@ -54,9 +54,12 @@ class _SignInPageState extends State<SignInPage> {
         verificationCompleted: (PhoneAuthCredential credential) async {
           _logger.i(
               "Verification completed: ${credential.smsCode}, ${credential.verificationId}");
+          print(
+              "Verification completed: ${credential.smsCode}, ${credential.verificationId}");
           try {
             await FirebaseAuth.instance.signInWithCredential(credential);
             _logger.i("✅ Auto-sign-in successful!");
+            print("✅ Auto-sign-in successful!");
             ToastMessageUtil.showToast("Inicio de sesión exitoso");
 
             setState(() {
@@ -64,6 +67,7 @@ class _SignInPageState extends State<SignInPage> {
             });
           } catch (e) {
             _logger.e("Error en la verificación automática: $e");
+            print("Error en la verificación automática: $e");
             setState(() {
               isloading = false;
             });
@@ -72,7 +76,10 @@ class _SignInPageState extends State<SignInPage> {
 
         // ❌ Handles errors (e.g., invalid phone number, quota exceeded)
         verificationFailed: (FirebaseAuthException error) async {
+          isloading = false;
           _logger.e(
+              "❌ Error en la autenticación: ${error.message}   ${error.code}");
+          print(
               "❌ Error en la autenticación: ${error.message}   ${error.code}");
 
           String errorMessage = "Error desconocido. Inténtelo de nuevo.";
@@ -114,8 +121,8 @@ class _SignInPageState extends State<SignInPage> {
                       builder: (context) => const VerificationPage()),
                 );
               }
+              return;
             }
-            return;
           }
           ToastMessageUtil.showToast(errorMessage);
           setState(() {
@@ -126,6 +133,7 @@ class _SignInPageState extends State<SignInPage> {
         // 📩 OTP sent via SMS
         codeSent: (String verificationId, int? forceResendingToken) {
           _logger.i("📩 Código enviado: $verificationId");
+          print("📩 Código enviado: $verificationId");
 
           setState(() {
             isloading = false;
@@ -141,6 +149,7 @@ class _SignInPageState extends State<SignInPage> {
         // ⏳ Timeout reached (OTP must be entered manually)
         codeAutoRetrievalTimeout: (String verificationId) async {
           _logger.w("⏳ Tiempo de espera agotado para auto-retrieval.");
+          print("⏳ Tiempo de espera agotado para auto-retrieval.");
         },
       );
     }

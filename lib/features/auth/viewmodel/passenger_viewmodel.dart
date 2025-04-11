@@ -73,6 +73,7 @@ class PassengerViewModel extends ChangeNotifier {
 
 //Send OTP via wahtsapp
   Future<bool> requestSMSViaWhatsApp(BuildContext context) async {
+    print("Reqeusting via whatsapp");
     loading2 = true;
     try {
       final phone = "+593$phoneNumber";
@@ -80,6 +81,7 @@ class PassengerViewModel extends ChangeNotifier {
           FirebaseFunctions.instance.httpsCallable('sendOtpViaWhatsApp');
       final response = await callable.call({'phone': phone});
       logger.i("${response.data}  numberL $phone");
+      print("${response.data}  numberL $phone");
       loading2 = false;
       return true;
     } catch (e) {
@@ -99,8 +101,10 @@ class PassengerViewModel extends ChangeNotifier {
     }
 
     final response = await _verifySms(smsCode, context);
+    print("Verifying sms: $response");
     if (context.mounted && !response) {
-      await _verifyOTPWhatsapp(smsCode, context);
+      final resp = await _verifyOTPWhatsapp(smsCode, context);
+      print("Verifying whatsapp $resp");
     }
     loading = false;
   }

@@ -20,16 +20,18 @@ class RideHistoryPage extends StatelessWidget {
     }
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Mis viajes',
-          style: Theme.of(context).textTheme.titleMedium,
+        title: const Text(
+          'Todos mis viajes',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple),
+          maxLines: 2,
         ),
+        iconTheme: const IconThemeData(color: Colors.purple),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('ride_history')
             .where('passengerId', isEqualTo: passengerId) // Filter by driverId
-            //.orderBy('startTime', descending: true) // Order by most recent
+            .orderBy('timesTamp', descending: true) // Order by most recent
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -40,6 +42,7 @@ class RideHistoryPage extends StatelessWidget {
           }
 
           if (snapshot.hasError) {
+            logger.e("Error obteniendo datos: ${snapshot.error}");
             return const Center(child: Text('Error obteniendo datos.'));
           }
 

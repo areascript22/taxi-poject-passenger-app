@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class BSElevatedButton extends StatefulWidget {
   final Widget child;
@@ -28,6 +27,11 @@ class _BSElevatedButtonState extends State<BSElevatedButton> {
       onPressed: widget.onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: widget.backgroundColor,
+        elevation: 5.0, // Controla la altura de la sombra
+        shadowColor: Theme.of(context)
+            .colorScheme
+            .inversePrimary
+            .withOpacity(0.65), // Color de la sombra
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),

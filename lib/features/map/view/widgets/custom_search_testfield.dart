@@ -51,16 +51,18 @@ class _CustomSearchTextFieldState extends State<CustomSearchTextField> {
         filled: true,
         // fillColor: Colors.grey[200], // Light gray background
         suffixIcon: IconButton(
-          icon: widget.controller!.text.isEmpty
-              ? const Icon(Ionicons.mic_outline)
-              : const Icon(Ionicons.close_outline),
-          onPressed: widget.controller!.text.isNotEmpty
-              ? () {
-                  widget.controller!.clear();
-                  setState(() {});
-                }
-              : widget.activateMicrofone,
-        ),
+            icon: widget.controller!.text.isEmpty
+                ? const Icon(
+                    Ionicons.mic_outline,
+                    color: Colors.transparent,
+                  )
+                : const Icon(Ionicons.close_outline),
+            onPressed: () {
+              widget.controller!.clear();
+              setState(() {});
+            }
+            // : widget.activateMicrofone,
+            ),
       ),
     );
   }

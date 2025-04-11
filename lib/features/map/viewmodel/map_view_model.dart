@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -10,7 +11,9 @@ import 'package:image/image.dart' as img;
 import 'package:passenger_app/shared/providers/shared_provider.dart';
 
 class MapViewModel extends ChangeNotifier {
-  final String apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
+  final String apiKey = Platform.isAndroid
+      ? dotenv.env['GOOGLE_MAPS_API_KEY_ANDROID'] ?? ''
+      : dotenv.env['GOOGLE_MAPS_API_KEY_IOS'] ?? '';
   bool _loading = false; //For showing a circular spineer while async funcs
   final Logger logger = Logger();
   late AnimationController animController;
@@ -271,7 +274,7 @@ class MapViewModel extends ChangeNotifier {
       () async {
         isMovingMap = false;
         animController.reverse();
-        mainIconSize = 30;
+        mainIconSize = 40;
         if (sharedProvider.pickUpCoordenates != null &&
             sharedProvider.driverModel == null) {
           sharedProvider.pickUpLocation = await MapServices.getReadableAddress(

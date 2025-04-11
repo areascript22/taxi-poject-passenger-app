@@ -36,7 +36,11 @@ class SettingsPageContent extends StatelessWidget {
             elevation: 0,
             title: const Text(
               'Configuración',
+              style:
+                  TextStyle(fontWeight: FontWeight.bold, color: Colors.purple),
+              maxLines: 2,
             ),
+            iconTheme: const IconThemeData(color: Colors.purple),
           ),
         ),
       ),
@@ -45,7 +49,7 @@ class SettingsPageContent extends StatelessWidget {
         child: Column(
           children: [
             //About app
-            _buildButton(() {}, "Modo oscuro", subtitle: 'Desactivado'),
+            // _buildButton(() {}, "Modo oscuro", subtitle: 'Desactivado'),
             //About app
             _buildButton(() {}, 'Acerca de la aplicación'),
 
