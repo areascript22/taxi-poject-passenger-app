@@ -1,8 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 import 'package:passenger_app/core/utils/toast_message_util.dart';
+import 'package:passenger_app/features/auth/repositories/verification_id_storage.dart';
+import 'package:passenger_app/features/auth/view/widgets/info_banner.dart';
 import 'package:passenger_app/features/ride_history/view/widgets/custom_devider.dart';
 import 'package:passenger_app/shared/widgets/custom_elevated_button.dart';
 import 'package:passenger_app/shared/widgets/custom_testfield.dart';
@@ -64,7 +65,12 @@ class _VerificationPageState extends State<VerificationPage> {
   Widget build(BuildContext context) {
     final passengerViewModel = Provider.of<PassengerViewModel>(context);
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        leading: IconButton(onPressed: ()async{
+          Navigator.pop(context);
+          await VerificationStorage.clearVerificationId();
+        }, icon: const Icon(Icons.arrow_back)),
+      ),
       body: PopScope(
         canPop: true,
         child: Form(
@@ -82,15 +88,18 @@ class _VerificationPageState extends State<VerificationPage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 10),
+                //Info banner
+                InfoBanner(),
                 //Texfiel de verificacion
+                const SizedBox(height: 10),
                 CustomTextField(
                   isKeyboardNumber: true,
                   hintText: 'Código sms',
                   textEditingController: textController,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Por favor, ingrese su contraseña'; // Required validation
+                      return 'Por favor, ingrese el código sms'; // Required validation
                     }
                     return null; // Return null if validation passes
                   },
@@ -127,21 +136,26 @@ class _VerificationPageState extends State<VerificationPage> {
                 const SizedBox(height: 10),
                 if (_canResend)
                   GestureDetector(
-                    onTap: () async {
+                    onTap: () async { 
                       passengerViewModel.verificationId = null;
                       final response = await passengerViewModel
                           .requestSMSViaWhatsApp(context);
-                      if (response && context.mounted) {
-                        ToastMessageUtil.showToast(
-                            "Código de verificación enviado a su WhatsApp");
-                      } else {
-                        ToastMessageUtil.showToast(
-                            "No se pudo reenviar el código, intentalo de nuevo");
+                      if(context.mounted){
+                        if (response) {
+                          ToastMessageUtil.showToast(
+                              "Código de verificación enviado a su WhatsApp",context);
+                        } else {
+                          ToastMessageUtil.showToast(
+                              "Intenta enviar el código de nuevo",context);
+                          Navigator.pop(context);
+
+                        }
                       }
+
                     },
                     child: !passengerViewModel.loading2
                         ? const Text(
-                            "Volver a enviar el código",
+                            "Volver a intentar",
                             style: TextStyle(
                               fontSize: 17,
                               color: Colors.blue,
@@ -150,7 +164,7 @@ class _VerificationPageState extends State<VerificationPage> {
                               decorationThickness: 0.8,
                             ),
                           )
-                        : const CircularProgressIndicator(),
+                        : const CircularProgressIndicator(color: Colors.blue),
                   ),
                 // ElevatedButton(
                 //   onPressed: _canResend

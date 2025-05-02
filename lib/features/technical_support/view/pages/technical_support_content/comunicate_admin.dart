@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:passenger_app/features/ride_history/view/widgets/custom_devider.dart';
-import 'package:passenger_app/shared/repositories/shared_service.dart';
 import 'package:passenger_app/shared/util/shared_util.dart';
 import 'package:passenger_app/shared/widgets/circle_button.dart';
 
@@ -14,61 +13,61 @@ class ContactoConAdministrador extends StatefulWidget {
 }
 
 class _ContactoConAdministradorState extends State<ContactoConAdministrador> {
-  TextEditingController _messageController = TextEditingController();
-  TextEditingController _emailController = TextEditingController();
-  String _selectedQueryType = 'Problema técnico';
+  // TextEditingController _messageController = TextEditingController();
+  // TextEditingController _emailController = TextEditingController();
+
   final sharedUtil = SharedUtil();
 
-  void _sendMessage() {
-    String message = _messageController.text.trim();
-    String email = _emailController.text.trim();
+  // void _sendMessage() {
+  //   String message = _messageController.text.trim();
+  //   String email = _emailController.text.trim();
+  //
+  //   if (email.isEmpty || message.isEmpty) {
+  //     _showErrorDialog("Todos los campos son obligatorios.");
+  //     return;
+  //   }
+  //
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: const Text("Mensaje Enviado"),
+  //         content: const Text(
+  //             "Tu mensaje ha sido enviado al administrador. ¡Gracias por contactarnos!"),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //               _messageController.clear();
+  //               _emailController.clear();
+  //             },
+  //             child: const Text("Aceptar"),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
-    if (email.isEmpty || message.isEmpty) {
-      _showErrorDialog("Todos los campos son obligatorios.");
-      return;
-    }
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Mensaje Enviado"),
-          content: const Text(
-              "Tu mensaje ha sido enviado al administrador. ¡Gracias por contactarnos!"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _messageController.clear();
-                _emailController.clear();
-              },
-              child: const Text("Aceptar"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Error"),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text("Aceptar"),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // void _showErrorDialog(String message) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: const Text("Error"),
+  //         content: Text(message),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //             },
+  //             child: const Text("Aceptar"),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {

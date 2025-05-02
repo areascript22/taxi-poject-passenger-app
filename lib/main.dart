@@ -1,3 +1,4 @@
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -11,17 +12,20 @@ import 'package:passenger_app/features/request_delivery/viewmodel/delivery_reque
 import 'package:passenger_app/features/request_driver/viewmodel/request_driver_viewmodel.dart';
 import 'package:passenger_app/firebase_options.dart';
 import 'package:passenger_app/shared/providers/shared_provider.dart';
-import 'package:passenger_app/shared/repositories/foreground_service.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  //app check
+  await FirebaseAppCheck.instance.activate(
+    androidProvider: AndroidProvider.playIntegrity,
+    appleProvider: AppleProvider.deviceCheck,
+  );
   // await FirebaseAppCheck.instance.activate(
-  //   androidProvider: AndroidProvider.playIntegrity,
-  //   appleProvider: AppleProvider.appAttest,
+  //   androidProvider: AndroidProvider.debug,
+  //   appleProvider: AppleProvider.deviceCheck,
   // );
-  // await startBackgroundService();
   await dotenv.load(fileName: '.env');
   runApp(MultiProvider(
     providers: [

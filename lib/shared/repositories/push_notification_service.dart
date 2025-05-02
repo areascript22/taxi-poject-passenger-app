@@ -62,7 +62,8 @@ class PushNotificationService {
         'body': body,
       });
 
-      print('✅ Notificación enviada: ${response.data}');
+      print(
+          '✅ Notificación enviada al token : $deviceToken : ${response.data}');
     } on FirebaseFunctionsException catch (e) {
       print('❌ Error en la función: ${e.message} ');
     } catch (e) {

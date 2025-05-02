@@ -58,7 +58,7 @@ class _RequestDriverBottomSheetState extends State<RequestDriverBottomSheet>
         break;
       default:
     }
-    requestDriverViewModel.checkIfThereIsTripInProgress(sharedProvider);
+    requestDriverViewModel.checkIfThereIsTripInProgress(sharedProvider,context);
   }
 
   @override

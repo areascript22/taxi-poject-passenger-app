@@ -6,7 +6,9 @@ import 'package:passenger_app/features/map/view/widgets/circular_button.dart';
 import 'package:passenger_app/shared/models/driver_model.dart';
 import 'package:passenger_app/shared/models/request_type.dart';
 import 'package:passenger_app/shared/providers/shared_provider.dart';
+import 'package:passenger_app/shared/repositories/push_notification_service.dart';
 import 'package:passenger_app/shared/util/shared_util.dart';
+import 'package:passenger_app/shared/widgets/custom_elevated_button.dart';
 import 'package:passenger_app/shared/widgets/user_avatar.dart';
 import 'package:provider/provider.dart';
 
@@ -25,7 +27,7 @@ class _DriverBottomCardState extends State<DriverBottomCard> {
     final SharedProvider sharedProvider = Provider.of<SharedProvider>(context);
     // final requestDriverViewModel =
     //     Provider.of<RequestDriverViewModel>(context, listen: false);
-    DriverInformation? driverModel = sharedProvider.driverModel;
+    DriverInformation? driverModel = sharedProvider.driverInformation;
     return Column(
       children: [
         //BUTTON: fit map
@@ -34,6 +36,20 @@ class _DriverBottomCardState extends State<DriverBottomCard> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              //TEST BUtton
+              CustomElevatedButton(
+                onTap: () async {
+                  logger.f(
+                      "Driver information: ${sharedProvider.driverInformation?.toMap()}");
+                  await PushNotificationService.sendPushNotification(
+                      deviceToken:
+                          "ePzNboH9TOKITeCcRtrB0m:APA91bF8J0PUWgEWSmRzDzfBDhhMyS6eWgyYnxran4ao2E7Oh1lZAOpnUnc42zUpHnN3DyjAQ4pnE5LO6ZtK975GoRHKpRDuIiG01GFtIFSM3n9BobbTtc4",
+                      title: "asdf",
+                      body: "ssdfasdfasfd");
+                },
+                child: Text("Test"),
+              ),
+              //
               CircularButton(
                 onPressed: () {
                   //call fit map function

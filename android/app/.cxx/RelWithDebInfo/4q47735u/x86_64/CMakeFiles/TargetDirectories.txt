@@ -1,0 +1,2 @@
+C:/FinalProjects/Project Indriver/basecode/passenger_app/android/app/.cxx/RelWithDebInfo/4q47735u/x86_64/CMakeFiles/edit_cache.dir
+C:/FinalProjects/Project Indriver/basecode/passenger_app/android/app/.cxx/RelWithDebInfo/4q47735u/x86_64/CMakeFiles/rebuild_cache.dir

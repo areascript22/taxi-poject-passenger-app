@@ -32,7 +32,7 @@ class _DriverHasPackageBottomSheetState
   @override
   Widget build(BuildContext context) {
     final sharedProvider = Provider.of<SharedProvider>(context);
-    final DriverInformation? driverModel = sharedProvider.driverModel;
+    final DriverInformation? driverModel = sharedProvider.driverInformation;
 
     return PopScope(
       canPop: false,

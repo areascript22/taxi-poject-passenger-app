@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:passenger_app/core/utils/dialog_util.dart';
 import 'package:passenger_app/core/utils/toast_message_util.dart';
+import 'package:passenger_app/features/auth/repositories/verification_id_storage.dart';
+import 'package:passenger_app/features/auth/view/pages/auth_wrapper.dart';
 import 'package:passenger_app/features/auth/view/pages/verification_page.dart';
 import 'package:passenger_app/shared/providers/shared_provider.dart';
+import 'package:passenger_app/shared/widgets/app_check_verified.dart';
 import 'package:passenger_app/shared/widgets/custom_elevated_button.dart';
 import 'package:passenger_app/features/auth/view/widgets/phone_number_field.dart';
 import 'package:passenger_app/features/auth/viewmodel/passenger_viewmodel.dart';
@@ -28,8 +31,26 @@ class _SignInPageState extends State<SignInPage> {
   void initState() {
     super.initState();
     textController.addListener(_onTextChanged);
+    checkVerificationId();
   }
 
+  //Check if there is a verification id in progress
+  void checkVerificationId() async {
+    final pasegerViewModel =
+        Provider.of<PassengerViewModel>(context, listen: false);
+    final resp = await VerificationStorage.getVerificationId();
+    if (resp != null) {
+      pasegerViewModel.verificationId = resp;
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const VerificationPage()),
+        );
+      }
+    }
+  }
+
+  //listneer
   void _onTextChanged() {
     showAlertMessage = false;
     setState(() {});
@@ -52,19 +73,28 @@ class _SignInPageState extends State<SignInPage> {
         phoneNumber: "+593${textController.text}",
         // ✅ Auto-verification (No OTP needed)
         verificationCompleted: (PhoneAuthCredential credential) async {
+          //Toast message
+          ToastMessageUtil.showToast("Verificación Completada", context);
           _logger.i(
               "Verification completed: ${credential.smsCode}, ${credential.verificationId}");
           print(
               "Verification completed: ${credential.smsCode}, ${credential.verificationId}");
           try {
             await FirebaseAuth.instance.signInWithCredential(credential);
+
             _logger.i("✅ Auto-sign-in successful!");
             print("✅ Auto-sign-in successful!");
-            ToastMessageUtil.showToast("Inicio de sesión exitoso");
+            ToastMessageUtil.showToast("Inicio de sesión exitoso", context);
 
             setState(() {
               isloading = false;
             });
+            if (context.mounted) {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const AuthWrapper()),
+                (Route<dynamic> route) => false, // elimina todo el stack
+              );
+            }
           } catch (e) {
             _logger.e("Error en la verificación automática: $e");
             print("Error en la verificación automática: $e");
@@ -90,26 +120,12 @@ class _SignInPageState extends State<SignInPage> {
           } else if (error.code == "user-disabled") {
             errorMessage = "Este número de teléfono ha sido bloqueado.";
           } else if (error.code == "too-many-requests") {
-            errorMessage = "Demasiados intentos. Inténtelo más tarde.";
-            passengerViewModel.phoneNumber = textController.text;
-            passengerViewModel.verificationId = null;
-            final response =
-                await passengerViewModel.requestSMSViaWhatsApp(context);
-            if (response) {
-              // Navigate to OTP verification screen
-              if (context.mounted) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const VerificationPage()),
-                );
-              }
-            }
-            return;
+            errorMessage = "Demasiados intentos. Inténtelo de nuevo más tarde.";
           } else {
             errorMessage = "Código de error: ${error.code}";
             passengerViewModel.phoneNumber = textController.text;
             passengerViewModel.verificationId = null;
+            //TRY OTP VIA WHATSAPP
             final response =
                 await passengerViewModel.requestSMSViaWhatsApp(context);
             if (response) {
@@ -123,17 +139,30 @@ class _SignInPageState extends State<SignInPage> {
               }
               return;
             }
+            //try log in with custom token
+            final resp = await passengerViewModel
+                .verifyPhoneAndLogin(textController.text);
+            if (resp) {
+              errorMessage = "Iniciando sesión";
+            }
           }
-          ToastMessageUtil.showToast(errorMessage);
+          if (context.mounted) {
+            ToastMessageUtil.showToast(errorMessage, context);
+          }
+
           setState(() {
             isloading = false;
           });
         },
 
         // 📩 OTP sent via SMS
-        codeSent: (String verificationId, int? forceResendingToken) {
+        codeSent: (String verificationId, int? forceResendingToken) async {
+          ToastMessageUtil.showToast(
+              "Código de verificación enviado vía SMS", context);
           _logger.i("📩 Código enviado: $verificationId");
           print("📩 Código enviado: $verificationId");
+          //Save verification id locally
+          await VerificationStorage.saveVerificationId(verificationId);
 
           setState(() {
             isloading = false;
@@ -141,10 +170,12 @@ class _SignInPageState extends State<SignInPage> {
           passengerViewModel.phoneNumber = textController.text;
           passengerViewModel.verificationId = verificationId;
           // Navigate to OTP verification screen
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const VerificationPage()),
-          );
+          if (context.mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const VerificationPage()),
+            );
+          }
         },
         // ⏳ Timeout reached (OTP must be entered manually)
         codeAutoRetrievalTimeout: (String verificationId) async {
@@ -164,7 +195,7 @@ class _SignInPageState extends State<SignInPage> {
         setState(() {
           showAlertMessage = true;
         });
-        ToastMessageUtil.showToast("Ingrese un número válido");
+        ToastMessageUtil.showToast("Ingrese un número válido", context);
         return;
       }
       DialogUtil.messageDialog(
@@ -227,6 +258,14 @@ class _SignInPageState extends State<SignInPage> {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
 
+                    //boton prueba
+                    // CustomElevatedButton(
+                    //     onTap: () {
+                    //       passengerViewModel.phoneNumber = '967340047';
+                    //       passengerViewModel.requestSMSViaWhatsApp(context);
+                    //     },
+                    //     child: const Text("Test")),
+
                     const SizedBox(height: 60),
 
                     //TextField
@@ -248,7 +287,17 @@ class _SignInPageState extends State<SignInPage> {
                     const SizedBox(height: 20),
                     //Boton enviar
                     CustomElevatedButton(
-                      onTap: !isloading ? confirmSendSMS : () {},
+                      onTap: !isloading
+                          ? () async {
+                              // FocusScope.of(context).unfocus();
+                              confirmSendSMS();
+                              //test
+                              // passengerViewModel.verifyPhoneAndLogin(textController.text);
+                              //  final logger = Logger();
+                              //  final appCheckToken = await FirebaseAppCheck.instance.getToken(true);
+                              //  logger.f('App Check Token: ${appCheckToken}');
+                            }
+                          : () {},
                       child: isloading
                           ? const CircularProgressIndicator()
                           : const Text("Enviar código"),
@@ -286,7 +335,14 @@ class _SignInPageState extends State<SignInPage> {
                 ),
               ),
               //VERSION
-              Text("V ${sharedProvider.version}"),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("V ${sharedProvider.version}"),
+                  const SizedBox(width: 10),
+                  const AppCheckVerified(),
+                ],
+              ),
             ],
           ),
         ),

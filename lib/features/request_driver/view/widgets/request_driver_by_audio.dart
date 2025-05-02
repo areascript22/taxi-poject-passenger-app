@@ -30,15 +30,15 @@ class _RequestDriverByAudioState extends State<RequestDriverByAudio> {
   double _testValue = 5;
   bool isSliding = false;
   bool microfonePermissions = true;
+  final record = AudioRecorder();
 
   bool _isRecording = false;
   bool _isPlaying = false;
   bool _audioRecorded = false;
-  String? _audioFilePath;
+
   Timer? timer;
   Duration elapsedDuration = Duration.zero;
   StreamSubscription<Duration>? audioDurationListener;
-  final _record = AudioRecorder();
 
   @override
   void initState() {
@@ -52,26 +52,42 @@ class _RequestDriverByAudioState extends State<RequestDriverByAudio> {
     _textController.dispose();
     // _recorder.closeRecorder();
     audioDurationListener?.cancel();
-    _record.dispose();
+    record.dispose();
     // _player.closePlayer();
     super.dispose();
   }
 
   Future<void> _initializeRecorder() async {
+    final requestDriverViewModel =
+        Provider.of<RequestDriverViewModel>(context, listen: false);
     try {
+      //Permissions
       PermissionStatus status = await Permission.microphone.request();
       if (status.isGranted) {
         //  await _recorder.openRecorder();
         listenToDuration();
         logger.e('Microphone permission  granted');
-        setState(() {
-          microfonePermissions = true;
-        });
+        if (mounted) {
+          setState(() {
+            microfonePermissions = true;
+          });
+        }
+
+        //Check if there is audio recorded
+        if (requestDriverViewModel.audioFilePath != null) {
+          if (mounted) {
+            setState(() {
+              _audioRecorded = true;
+            });
+          }
+        }
       } else {
         logger.e('Microphone permission not granted');
-        setState(() {
-          microfonePermissions = false;
-        });
+        if (mounted) {
+          setState(() {
+            microfonePermissions = false;
+          });
+        }
       }
     } catch (e) {
       logger.e("Error trying to request microfone permissions.");
@@ -80,33 +96,43 @@ class _RequestDriverByAudioState extends State<RequestDriverByAudio> {
 
 //Start recording audio
   Future<void> _startRecording() async {
+    final requestDriverViewModel =
+        Provider.of<RequestDriverViewModel>(context, listen: false);
     await _audioPlayer.stop();
-    setState(() => _isPlaying = false);
+    if (mounted) {
+      setState(() => _isPlaying = false);
+    }
+
     _currentDuration = Duration.zero;
     elapsedDuration = Duration.zero;
     timer?.cancel();
     //timer
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        elapsedDuration += const Duration(seconds: 1);
-      });
+      if (mounted) {
+        setState(() {
+          elapsedDuration += const Duration(seconds: 1);
+        });
+      }
     });
 
     //audio recorder
     final directory = await getApplicationDocumentsDirectory();
-    final filePath = '${directory.path}/single_audio.aac';
-    setState(() {
-      _isRecording = true;
-      _audioRecorded = false;
-    });
+    final filePath = '${directory.path}/single_audio_ride.aac';
+    if (mounted) {
+      setState(() {
+        _isRecording = true;
+        _audioRecorded = false;
+      });
+    }
+
     // await _recorder.startRecorder(toFile: filePath);
-    await _record.start(const RecordConfig(), path: filePath);
-    _audioFilePath = filePath;
+    record.start(const RecordConfig(), path: filePath);
+    requestDriverViewModel.audioFilePath = filePath;
   }
 
 //Stop recording audio
   Future<void> _stopRecording() async {
-    await _record.stop();
+    record.stop();
     if (mounted) {
       setState(() {
         _isRecording = false;
@@ -119,32 +145,43 @@ class _RequestDriverByAudioState extends State<RequestDriverByAudio> {
 
 //Delete recorded audio
   Future<void> _removeRecordedAudio() async {
-    if (_audioFilePath == null) return;
+    final requestDriverViewModel =
+        Provider.of<RequestDriverViewModel>(context, listen: false);
+    if (requestDriverViewModel.audioFilePath == null) return;
     // await _recorder.deleteRecord(fileName: _audioFilePath!);
     // _record.
-    if (_audioFilePath != null) {
-      final file = File(_audioFilePath!);
+    if (requestDriverViewModel.audioFilePath != null) {
+      final file = File(requestDriverViewModel.audioFilePath!);
       if (await file.exists()) {
         await file.delete();
       }
     }
-    _audioFilePath = null;
-    setState(() {
-      _audioRecorded = false;
-    });
+    requestDriverViewModel.audioFilePath = null;
+    if (mounted) {
+      setState(() {
+        _audioRecorded = false;
+      });
+    }
   }
 
 //Play audio
   Future<void> _playAudio() async {
-    if (_audioFilePath == null) return;
-    await _audioPlayer.play(DeviceFileSource(_audioFilePath!));
-    setState(() => _isPlaying = true);
+    final requestDriverViewModel =
+        Provider.of<RequestDriverViewModel>(context, listen: false);
+    if (requestDriverViewModel.audioFilePath == null) return;
+    await _audioPlayer
+        .play(DeviceFileSource(requestDriverViewModel.audioFilePath!));
+    if (mounted) {
+      setState(() => _isPlaying = true);
+    }
   }
 
 //Stop audio
   Future<void> _pauseAudio() async {
     await _audioPlayer.pause();
-    setState(() => _isPlaying = false);
+    if (mounted) {
+      setState(() => _isPlaying = false);
+    }
   }
 
   //Seek to a specific position in the current song
@@ -158,23 +195,29 @@ class _RequestDriverByAudioState extends State<RequestDriverByAudio> {
     //Listen for the total duration
     audioDurationListener =
         _audioPlayer.onDurationChanged.listen((newDuration) {
-      setState(() {
-        _totalDuration = newDuration;
-      });
+      if (mounted) {
+        setState(() {
+          _totalDuration = newDuration;
+        });
+      }
     });
 
     //Listen for the current durationa
     _audioPlayer.onPositionChanged.listen((newPosition) {
-      setState(() {
-        _currentDuration = newPosition;
-      });
+      if (mounted) {
+        setState(() {
+          _currentDuration = newPosition;
+        });
+      }
     });
 
     //Listen for song completion
     _audioPlayer.onPlayerComplete.listen((event) {
-      setState(() {
-        _isPlaying = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isPlaying = false;
+        });
+      }
     });
   }
 
@@ -288,16 +331,20 @@ class _RequestDriverByAudioState extends State<RequestDriverByAudio> {
                                       isSliding = true;
                                     },
                                     onChanged: (double value) {
-                                      setState(() {
-                                        _testValue = value;
-                                      });
+                                      if (mounted) {
+                                        setState(() {
+                                          _testValue = value;
+                                        });
+                                      }
                                     },
                                     onChangeEnd: (value2) async {
                                       await seek(
                                           Duration(seconds: value2.toInt()));
-                                      setState(() {
-                                        isSliding = false;
-                                      });
+                                      if (mounted) {
+                                        setState(() {
+                                          isSliding = false;
+                                        });
+                                      }
                                     },
                                   ),
                                 ),
@@ -354,14 +401,16 @@ class _RequestDriverByAudioState extends State<RequestDriverByAudio> {
                 const SizedBox(height: 15),
                 CustomElevatedButton(
                   onTap: () async {
-                    if (!_audioRecorded || _audioFilePath == null) {
+                    if (!_audioRecorded ||
+                        requestDriverViewModel.audioFilePath == null) {
                       ToastMessageUtil.showToast(
-                          "Graba un audio par pedir tu vehículo.");
+                          "Graba un audio par pedir tu vehículo.", context);
                       return;
                     }
                     //Upload the audio to Firebase and get its URL
                     String? audioUrl = await requestDriverViewModel
-                        .uploadRecordedAudioToStorage(_audioFilePath!, context);
+                        .uploadRecordedAudioToStorage(
+                            requestDriverViewModel.audioFilePath!, context);
                     //Request Taxi
                     if (context.mounted) {
                       requestDriverViewModel.requestTaxi2(
@@ -409,5 +458,5 @@ class _RequestDriverByAudioState extends State<RequestDriverByAudio> {
 }
 
 Widget buildRequestDriverByAudio() {
-  return RequestDriverByAudio();
+  return const RequestDriverByAudio();
 }

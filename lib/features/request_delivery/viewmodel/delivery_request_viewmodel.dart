@@ -35,7 +35,9 @@ class DeliveryRequestViewModel extends ChangeNotifier {
   StreamSubscription<DatabaseEvent>? driverStatusListener;
   StreamSubscription<DatabaseEvent>? driverAcceptanceListener;
   StreamSubscription<DatabaseEvent>? driverPositionListener;
-
+  //textr controller
+  final deliveryTextController = TextEditingController();
+  String? audioFilePath;
   //GETTERS
   bool get loading => _loading;
   DeliveryDetailsModel? get deliveryDetailsModel => _deliveryDetailsModel;
@@ -88,8 +90,8 @@ class DeliveryRequestViewModel extends ChangeNotifier {
         indicationText: indicationText,
       );
       //Start Listener
-      if (dataWritten) {
-        _listenToDriverAcceptance(passengerId, sharedProvider);
+      if (dataWritten && context.mounted) {
+        _listenToDriverAcceptance(passengerId, sharedProvider, context);
         sharedProvider.deliveryLookingForDriver = true;
       }
       loading = false;
@@ -101,7 +103,7 @@ class DeliveryRequestViewModel extends ChangeNotifier {
 
   //LISTENER: To listen when a driver accept our delivery request
   void _listenToDriverAcceptance(
-      String passengerId, SharedProvider sharedProvider) {
+      String passengerId, SharedProvider sharedProvider, BuildContext context) {
     final databaseRef =
         FirebaseDatabase.instance.ref('delivery_requests/$passengerId/driver');
 
@@ -129,14 +131,14 @@ class DeliveryRequestViewModel extends ChangeNotifier {
               await SharedService.getDriverInformationById(driverId);
           driver = driverModel?.information;
 
-          sharedProvider.driverModel = driver;
+          sharedProvider.driverInformation = driver;
 
           //Start Driver Location Listener
           _listenToDriverCoordenates(passengerId, driverId, sharedProvider);
           //Start Delivery Request Status Listener
-          _listenToDeliveryRequestStatus(passengerId, sharedProvider);
-          logger
-              .i("Driver retrieved succesfully: ${sharedProvider.driverModel}");
+          _listenToDeliveryRequestStatus(passengerId, sharedProvider, context);
+          logger.i(
+              "Driver retrieved succesfully: ${sharedProvider.driverInformation}");
         } else {
           logger.i('There is no drivers ');
         }
@@ -148,7 +150,7 @@ class DeliveryRequestViewModel extends ChangeNotifier {
 
   //LISTENER: To listen every status of the driver
   void _listenToDeliveryRequestStatus(
-      String passengerId, SharedProvider sharedProvider) {
+      String passengerId, SharedProvider sharedProvider, BuildContext context) {
     final Logger logger = Logger();
     final databaseRef =
         FirebaseDatabase.instance.ref('delivery_requests/$passengerId/status');
@@ -206,12 +208,12 @@ class DeliveryRequestViewModel extends ChangeNotifier {
             case DeliveryStatus.finished:
               sharedProvider.deliveryStatus = DeliveryStatus.finished;
               //Rate the driver
-              if (sharedProvider.driverModel != null) {
+              if (sharedProvider.driverInformation != null) {
                 showStarRatingsBottomSheet(sharedProvider.mapPageContext!,
-                    sharedProvider.driverModel!.id);
+                    sharedProvider.driverInformation!.id);
               }
               //Return to normal state of the appp
-              sharedProvider.driverModel = null;
+              sharedProvider.driverInformation = null;
               sharedProvider.dropOffCoordenates = null;
               sharedProvider.dropOffLocation = null;
               sharedProvider.pickUpCoordenates = null;
@@ -230,7 +232,7 @@ class DeliveryRequestViewModel extends ChangeNotifier {
               break;
             case DeliveryStatus.canceled:
               //Return to normal state of the appp
-              sharedProvider.driverModel = null;
+              sharedProvider.driverInformation = null;
               sharedProvider.dropOffCoordenates = null;
               sharedProvider.dropOffLocation = null;
               sharedProvider.pickUpCoordenates = null;
@@ -241,7 +243,8 @@ class DeliveryRequestViewModel extends ChangeNotifier {
               sharedProvider.polylineFromPickUpToDropOff =
                   const Polyline(polylineId: PolylineId("default"));
               clearListeners();
-              ToastMessageUtil.showToast("La encomienda fue cancelada.");
+              ToastMessageUtil.showToast(
+                  "La encomienda fue cancelada.", context);
               if (sharedProvider.passengerCurrentCoords != null) {
                 sharedProvider.animateCameraToPosition(
                     sharedProvider.passengerCurrentCoords!);
@@ -322,7 +325,7 @@ class DeliveryRequestViewModel extends ChangeNotifier {
             //   sharedProvider.routeDuration =
             //       SharedHelpers.extractMinutes(routeInfo.duration);
             // }
-            if (sharedProvider.driverModel != null) {
+            if (sharedProvider.driverInformation != null) {
               sharedProvider.polylineFromPickUpToDropOff = Polyline(
                 polylineId: const PolylineId("pickUpToDropoff"),
                 points: routeInfo.polylinePoints,

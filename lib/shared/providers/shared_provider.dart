@@ -20,7 +20,7 @@ class SharedProvider extends ChangeNotifier {
   //Passenger data
   GUser? passenger;
   //Driver data
-  DriverInformation? _driverModel;
+  DriverInformation? _driverInformation;
   String _driverStatus = ''; //To Track ride status
   String _deliveryStatus = ''; //To track delivery status
   LatLng? driverCurrentCoordenates;
@@ -54,7 +54,7 @@ class SharedProvider extends ChangeNotifier {
   }
 
   //GETTERS
-  DriverInformation? get driverModel => _driverModel;
+  DriverInformation? get driverInformation => _driverInformation;
   String get driverStatus => _driverStatus;
   String get deliveryStatus => _deliveryStatus;
 
@@ -77,8 +77,8 @@ class SharedProvider extends ChangeNotifier {
   int? get routeDuration => _routeDuration;
 
   //SETTTERS
-  set driverModel(DriverInformation? value) {
-    _driverModel = value;
+  set driverInformation(DriverInformation? value) {
+    _driverInformation = value;
     notifyListeners();
   }
 

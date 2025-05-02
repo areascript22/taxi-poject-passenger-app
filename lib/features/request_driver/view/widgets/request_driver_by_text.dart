@@ -17,7 +17,7 @@ class RequestDriverByTyping extends StatelessWidget {
   Widget build(BuildContext context) {
     final requestDriverViewModel = Provider.of<RequestDriverViewModel>(context);
     final sharedProvider = Provider.of<SharedProvider>(context);
-    final textController = TextEditingController();
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
@@ -36,7 +36,7 @@ class RequestDriverByTyping extends StatelessWidget {
           //Textfield
           const SizedBox(height: 10),
           TextField(
-            controller: textController,
+            controller: requestDriverViewModel.requestByTextController,
             maxLines: 4, // Limits visible lines to 5
             keyboardType: TextInputType.multiline,
             decoration: const InputDecoration(
@@ -52,9 +52,9 @@ class RequestDriverByTyping extends StatelessWidget {
           const SizedBox(height: 7),
           CustomElevatedButton(
             onTap: () {
-              if (textController.text.length < 15) {
+              if (requestDriverViewModel.requestByTextController.text.length < 15) {
                 ToastMessageUtil.showToast(
-                    "Texto muy corto. Escribe al menos 15 caracteres.");
+                    "Texto muy corto. Escribe al menos 15 caracteres.",context);
                 return;
               }
               //Request the vehicle
@@ -62,7 +62,7 @@ class RequestDriverByTyping extends StatelessWidget {
                 context,
                 sharedProvider,
                 RequestType.byTexting,
-                indicationText: textController.text,
+                indicationText: requestDriverViewModel.requestByTextController.text,
               );
             },
             child: const Text("Solicitar taxi"),

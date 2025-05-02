@@ -12,7 +12,7 @@ class CancelRideBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final requestDriverViewModel = Provider.of<RequestDriverViewModel>(context);
     final sharedProvider = Provider.of<SharedProvider>(context);
-    final driverInfo = sharedProvider.driverModel;
+    final driverInfo = sharedProvider.driverInformation;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20.0),

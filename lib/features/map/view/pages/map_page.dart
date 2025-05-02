@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:logger/logger.dart';
@@ -34,7 +33,6 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   String _mapStyle = "";
   MapViewModel? mapViewModelToDispose;
   SharedProvider? sharedProviderToDispose;
-  final service = FlutterBackgroundService();
 
   @override
   void initState() {
@@ -97,7 +95,7 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
       key: scaffoldkey,
       appBar: AppBar(
         actions: [
-          if (sharedProvider.driverModel != null)
+          if (sharedProvider.driverInformation != null)
             TextButton(
               onPressed: () {
                 if (!sharedProvider.requestDriverOrDelivery) {
@@ -114,7 +112,7 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
             ),
         ],
         automaticallyImplyLeading: false,
-        toolbarHeight: sharedProvider.driverModel != null ? 40 : 0,
+        toolbarHeight: sharedProvider.driverInformation != null ? 40 : 0,
       ),
       drawer: const CustomDrawer(),
       body: Stack(
@@ -132,7 +130,7 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
             polylines: {sharedProvider.polylineFromPickUpToDropOff},
             polygons: sharedProvider.polygons,
             markers: {
-              sharedProvider.driverModel != null
+              sharedProvider.driverInformation != null
                   ? sharedProvider.driverMarker
                   : const Marker(markerId: MarkerId("defauklt")),
               ...sharedProvider.markers
@@ -147,7 +145,7 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
               if (sharedProvider.requestType != RequestType.byCoordinates) {
                 return;
               }
-              if (sharedProvider.driverModel == null) {
+              if (sharedProvider.driverInformation == null) {
                 sharedProvider.pickUpCoordenates = position.target;
               }
             },
@@ -157,7 +155,7 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
                 mapViewModel.showBottomSheetWithDelay(sharedProvider),
           ),
           //TOP MESSAGE
-          if (sharedProvider.driverModel != null)
+          if (sharedProvider.driverInformation != null)
             Positioned(
               top: 5,
               left: 25,
@@ -188,7 +186,7 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
                                     .start, // Align text to the left
                                 children: [
                                   Text(
-                                    '${sharedProvider.driverModel!.name} llegará por ti en aproximadamente',
+                                    '${sharedProvider.driverInformation!.name} llegará por ti en aproximadamente',
                                     style:
                                         Theme.of(context).textTheme.titleLarge,
                                   ),
@@ -219,7 +217,7 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
                   )),
             ),
           //Select Location Icon
-          if (sharedProvider.driverModel == null &&
+          if (sharedProvider.driverInformation == null &&
               sharedProvider.requestType == RequestType.byCoordinates)
             SelectLocationIcon(
               mainIconSize: mapViewModel.mainIconSize,
@@ -239,7 +237,7 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
             ),
           //     Menu Icon
           if (!mapViewModel.enteredInSelectingLocationMode &&
-              sharedProvider.driverModel == null)
+              sharedProvider.driverInformation == null)
             Positioned(
               top: 10,
               left: 15,
@@ -253,7 +251,7 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
             ),
 
           //Go to current location button
-          if (sharedProvider.driverModel == null)
+          if (sharedProvider.driverInformation == null)
             Positioned(
               top: 10,
               right: 10,
@@ -316,7 +314,7 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
           if (!mapViewModel.isMovingMap &&
               !mapViewModel.enteredInSelectingLocationMode &&
               !sharedProvider.requestDriverOrDelivery &&
-              sharedProvider.driverModel == null)
+              sharedProvider.driverInformation == null)
             Positioned(
               left: 0,
               right: 0,
@@ -335,7 +333,7 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
           if (!mapViewModel.isMovingMap &&
               !mapViewModel.enteredInSelectingLocationMode &&
               sharedProvider.requestDriverOrDelivery &&
-              sharedProvider.driverModel == null)
+              sharedProvider.driverInformation == null)
             Positioned(
               left: 0,
               right: 0,
@@ -347,7 +345,7 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
             ),
 
           //WHEN DRIVER IS COMMING.
-          if (sharedProvider.driverModel != null)
+          if (sharedProvider.driverInformation != null)
             const Positioned(
               left: 0,
               right: 0,

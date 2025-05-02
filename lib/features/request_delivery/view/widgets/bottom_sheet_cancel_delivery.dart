@@ -15,7 +15,7 @@ class CancelDeliveryBottomSheett extends StatelessWidget {
     final deliveryRequestViewModel =
         Provider.of<DeliveryRequestViewModel>(context);
     final sharedProvider = Provider.of<SharedProvider>(context);
-    final driverInfo = sharedProvider.driverModel;
+    final driverInfo = sharedProvider.driverInformation;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20.0),

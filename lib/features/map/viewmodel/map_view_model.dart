@@ -276,7 +276,7 @@ class MapViewModel extends ChangeNotifier {
         animController.reverse();
         mainIconSize = 40;
         if (sharedProvider.pickUpCoordenates != null &&
-            sharedProvider.driverModel == null) {
+            sharedProvider.driverInformation == null) {
           sharedProvider.pickUpLocation = await MapServices.getReadableAddress(
             sharedProvider.pickUpCoordenates!.latitude,
             sharedProvider.pickUpCoordenates!.longitude,

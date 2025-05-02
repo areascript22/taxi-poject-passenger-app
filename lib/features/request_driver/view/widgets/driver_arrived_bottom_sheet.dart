@@ -39,7 +39,7 @@ class _DriverArrivedBottomSheetState extends State<DriverArrivedBottomSheet> {
   Widget build(BuildContext context) {
     final requestDriverViewModel = Provider.of<RequestDriverViewModel>(context);
     final sharedProvider = Provider.of<SharedProvider>(context);
-    final DriverInformation? driverModel = sharedProvider.driverModel;
+    final DriverInformation? driverModel = sharedProvider.driverInformation;
 
     return PopScope(
       canPop: false,
@@ -82,7 +82,7 @@ class _DriverArrivedBottomSheetState extends State<DriverArrivedBottomSheet> {
                   child: CustomElevatedButton(
                     onTap: () async {
                       requestDriverViewModel.updateDriverStatus(
-                          sharedProvider.driverModel!.id,
+                          sharedProvider.driverInformation!.id,
                           DriverRideStatus.goingToDropOff,
                           context);
                       countDownTimer.cancel();

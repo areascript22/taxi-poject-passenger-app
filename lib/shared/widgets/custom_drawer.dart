@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
+import 'package:passenger_app/features/legal_info/view/pages/privacy_policy.dart';
+import 'package:passenger_app/features/legal_info/view/pages/termns_and_conditions.dart';
 import 'package:passenger_app/features/profile/view/pages/edit_profile_page.dart';
 import 'package:passenger_app/features/ride_history/view/pages/ride_history_page.dart';
 import 'package:passenger_app/features/ride_history/view/widgets/custom_devider.dart';
 import 'package:passenger_app/features/settings/view/pages/settings_page.dart';
-import 'package:passenger_app/features/tabout_us/view/pages/about_us_page.dart';
 
 import 'package:passenger_app/features/technical_support/view/pages/technical_support.dart';
 import 'package:passenger_app/shared/models/g_user.dart';
@@ -36,59 +37,74 @@ class CustomDrawer extends StatelessWidget {
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const EditProfilePage(),
-                          ));
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const EditProfilePage(),
+                        ),
+                      );
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            //image
-                            UserAvatar(
-                              imageUrl: passenger.profilePicture,
-                            ),
+                        Expanded(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Image
+                              UserAvatar(imageUrl: passenger.profilePicture),
 
-                            //Passenger info
-                            const SizedBox(width: 10),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                //Passenger's name
+                              const SizedBox(width: 10),
 
-                                Text(
-                                  passenger.name,
-                                  style: const TextStyle(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                Row(
+                              // Passenger info
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Icon(
-                                      Icons.star,
-                                      color: Color(0xFFFDA503),
+                                    // Passenger's name
+                                    Text(
+                                      passenger.name,
+                                      style: const TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    Text(passenger.ratings.rating.toString())
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.star,
+                                          color: Color(0xFFFDA503),
+                                          size: 16,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Flexible(
+                                          child: Text(
+                                            passenger.ratings.rating.toString(),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ],
                                 ),
-                              ],
-                            ),
-                          ],
+                              ),
+                            ],
+                          ),
                         ),
+
+                        // Forward icon
                         IconButton(
-                            onPressed: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const EditProfilePage(),
-                                  ));
-                            },
-                            icon: const Icon(Ionicons.chevron_forward))
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const EditProfilePage(),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Ionicons.chevron_forward),
+                        ),
                       ],
                     ),
                   ),
@@ -144,22 +160,37 @@ class CustomDrawer extends StatelessWidget {
                   },
                 ),
 
-                //About us
-                // ListTile(
-                //   leading: const Icon(Icons.info_outline_rounded),
-                //   title: const Text(
-                //     "Acerca de",
-                //     style: TextStyle(fontSize: 17),
-                //   ),
-                //   onTap: () async {
-                //     Navigator.push(
-                //       context,
-                //       MaterialPageRoute(
-                //         builder: (_) => const AboutUsPage(),
-                //       ),
-                //     );
-                //   },
-                // ),
+                //Termns and conditions
+                ListTile(
+                  leading: const Icon(Icons.privacy_tip),
+                  title: const Text(
+                    "Términos y condiciones",
+                    style: TextStyle(fontSize: 17),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const TermnsAndConditionsPage(),
+                        ));
+                  },
+                ),
+
+                //Privacy policy
+                ListTile(
+                  leading: const Icon(Icons.privacy_tip_outlined),
+                  title: const Text(
+                    "Políticas de privacidad",
+                    style: TextStyle(fontSize: 17),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PrivacyPolicyPage(),
+                        ));
+                  },
+                ),
               ],
             ),
 

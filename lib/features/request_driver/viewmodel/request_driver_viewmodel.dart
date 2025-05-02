@@ -3,9 +3,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:logger/logger.dart';
 import 'package:logger/web.dart';
@@ -19,12 +17,12 @@ import 'package:passenger_app/shared/models/driver_model.dart';
 import 'package:passenger_app/shared/models/request_type.dart';
 import 'package:passenger_app/shared/models/route_info.dart';
 import 'package:passenger_app/shared/providers/shared_provider.dart';
+import 'package:passenger_app/shared/repositories/push_notification_service.dart';
 import 'package:passenger_app/shared/repositories/shared_service.dart';
 import 'package:passenger_app/shared/util/shared_util.dart';
 import 'package:passenger_app/shared/widgets/loading_overlay.dart';
 
 class RequestDriverViewModel extends ChangeNotifier {
-  final service = FlutterBackgroundService();
   final Logger logger = Logger();
   final String apiKey = Platform.isAndroid
       ? dotenv.env['GOOGLE_MAPS_API_KEY_ANDROID'] ?? ''
@@ -40,6 +38,10 @@ class RequestDriverViewModel extends ChangeNotifier {
   StreamSubscription<DatabaseEvent>? passengerIdChangesListener;
   StreamSubscription<DatabaseEvent>? driverAcceptanceListener;
   DatabaseReference? savedDriverRef;
+  //Request by audio and text
+  final requestByTextController = TextEditingController();
+
+  String? audioFilePath;
 
   //GETTERS
   String? get timefromTaxiToPickUp => _timefromTaxiToPickUp;
@@ -57,7 +59,8 @@ class RequestDriverViewModel extends ChangeNotifier {
     driverAcceptanceListener?.cancel();
   }
 
-  void checkIfThereIsTripInProgress(SharedProvider sharedProvider) async {
+  void checkIfThereIsTripInProgress(
+      SharedProvider sharedProvider, BuildContext context) async {
     final passengerId = FirebaseAuth.instance.currentUser?.uid;
     if (passengerId == null) {
       logger.e("User is not authenticated yet");
@@ -79,12 +82,12 @@ class RequestDriverViewModel extends ChangeNotifier {
       if (driverModel == null) {
         return;
       }
-      sharedProvider.driverModel = driverModel.information;
+      sharedProvider.driverInformation = driverModel.information;
       referenceToCancelRide =
           FirebaseDatabase.instance.ref('drivers/$driverId/passenger');
       sharedProvider.deliveryLookingForDriver = false;
       sharedUtil.playAudio("sounds/acepted_ride.mp3");
-      _listenToDriverStatus(driverId, sharedProvider);
+      _listenToDriverStatus(driverId, sharedProvider, context);
       _listenToDriverCoordenates(driverModel.information.id, sharedProvider);
       //SAVE TO DRIVER ID
       // await RequestDriverService.saveDriverIdTemporally(
@@ -227,7 +230,7 @@ class RequestDriverViewModel extends ChangeNotifier {
     if (requestType == RequestType.byCoordinates) {
       if (sharedProvider.pickUpCoordenates == null) {
         ToastMessageUtil.showToast(
-            "Seleccióna tu ubicación antes de solicitar tu táxi");
+            "Seleccióna tu ubicación antes de solicitar tu táxi", context);
         overlayEntry.remove();
         return;
       }
@@ -235,7 +238,7 @@ class RequestDriverViewModel extends ChangeNotifier {
     } else {
       if (sharedProvider.passengerCurrentCoords == null) {
         ToastMessageUtil.showToast(
-            "Sin señal GPS, no podemos encontrarte en el mapa");
+            "Sin señal GPS, no podemos encontrarte en el mapa", context);
         overlayEntry.remove();
         return;
       }
@@ -245,6 +248,7 @@ class RequestDriverViewModel extends ChangeNotifier {
     overlayEntry.remove();
     await addDriverRequestToQueue2(
       sharedProvider,
+      context,
       requestType,
       audioFilePath: audioFilePath,
       indicationText: indicationText,
@@ -254,6 +258,7 @@ class RequestDriverViewModel extends ChangeNotifier {
   //
   Future<void> addDriverRequestToQueue2(
     SharedProvider sharedProvider,
+    BuildContext context,
     String requestType, {
     String? audioFilePath,
     String? indicationText,
@@ -276,6 +281,7 @@ class RequestDriverViewModel extends ChangeNotifier {
     if (driverRequestSuccess) {
       listenToDriverAcceptance(
         sharedProvider,
+        context,
         requestType,
         audioFilePath: audioFilePath,
         indicationText: indicationText,
@@ -286,6 +292,7 @@ class RequestDriverViewModel extends ChangeNotifier {
   //LISTER: Listen to driver acceptance
   void listenToDriverAcceptance(
     SharedProvider sharedProvider,
+    BuildContext context,
     String requestType, {
     String? audioFilePath,
     String? indicationText,
@@ -306,7 +313,7 @@ class RequestDriverViewModel extends ChangeNotifier {
         DriverModel? driverModel =
             await SharedService.getDriverInformationById(driverId);
         if (driverModel != null) {
-          sharedProvider.driverModel = driverModel.information;
+          sharedProvider.driverInformation = driverModel.information;
           passengerNodeUpdated = await RequestDriverService.updatePassengerNode(
             driverId,
             driverModel.information.deviceToken,
@@ -323,9 +330,9 @@ class RequestDriverViewModel extends ChangeNotifier {
         //Move to Operation mode
         if (passengerNodeUpdated && driverModel != null) {
           sharedProvider.deliveryLookingForDriver = false;
-          sharedProvider.driverModel = driverModel.information;
+          sharedProvider.driverInformation = driverModel.information;
           sharedUtil.playAudio("sounds/acepted_ride.mp3");
-          _listenToDriverStatus(driverId, sharedProvider);
+          _listenToDriverStatus(driverId, sharedProvider, context);
           _listenToDriverCoordenates(
               driverModel.information.id, sharedProvider);
           //SAVE TO DRIVER ID
@@ -339,6 +346,7 @@ class RequestDriverViewModel extends ChangeNotifier {
   //Add driver requuest to queue: Only if There aren't vehicles available
   Future<void> addDriverRequestToQueue(
     SharedProvider sharedProvider,
+    BuildContext context,
     String requestType, {
     String? audioFilePath,
     String? indicationText,
@@ -373,7 +381,7 @@ class RequestDriverViewModel extends ChangeNotifier {
         DriverModel? driverModel =
             await SharedService.getDriverInformationById(driverId);
         if (driverModel != null) {
-          sharedProvider.driverModel = driverModel.information;
+          sharedProvider.driverInformation = driverModel.information;
           if (driverModel.status == "reserved") {
             passengerNodeUpdated =
                 await RequestDriverService.updatePassengerNode(
@@ -388,7 +396,7 @@ class RequestDriverViewModel extends ChangeNotifier {
             referenceToCancelRide =
                 FirebaseDatabase.instance.ref('drivers/$driverId/passenger');
 
-            _listenToDriverStatus(driverId, sharedProvider);
+            _listenToDriverStatus(driverId, sharedProvider, context);
           } else {
             passengerNodeUpdated =
                 await RequestDriverService.updatePassengerNode(
@@ -406,10 +414,10 @@ class RequestDriverViewModel extends ChangeNotifier {
         }
 
         //Move to Operation mode
-        if (passengerNodeUpdated && driverModel != null) {
-          sharedProvider.driverModel = driverModel.information;
+        if (passengerNodeUpdated && driverModel != null && context.mounted) {
+          sharedProvider.driverInformation = driverModel.information;
           _listenToPassengerIdChanges(
-              driverId, sharedProvider.passenger!.id!, sharedProvider);
+              driverId, sharedProvider.passenger!.id!, sharedProvider, context);
           _listenToDriverCoordenates(
               driverModel.information.id, sharedProvider);
         }
@@ -418,8 +426,8 @@ class RequestDriverViewModel extends ChangeNotifier {
   }
 
   //Listen when Our request pass to be the Current ride
-  void _listenToPassengerIdChanges(
-      String driverId, String passengerId, SharedProvider sharedProvider) {
+  void _listenToPassengerIdChanges(String driverId, String passengerId,
+      SharedProvider sharedProvider, BuildContext context) {
     final databaseRef = FirebaseDatabase.instance.ref();
     // Define the path to listen for passengerId changes
     final passengerIdPath =
@@ -431,7 +439,7 @@ class RequestDriverViewModel extends ChangeNotifier {
         // Check if the passengerId matches "123456"
         if (passengerIdTemp == passengerId) {
           logger.f("Listen ID changes ");
-          _listenToDriverStatus(driverId, sharedProvider);
+          _listenToDriverStatus(driverId, sharedProvider, context);
         }
       }
     });
@@ -542,8 +550,13 @@ class RequestDriverViewModel extends ChangeNotifier {
             }
             destination = sharedProvider.passengerCurrentCoords!;
           }
-          RouteInfo? routeInfo = await SharedService.getRoutePolylinePoints(
-              driverCoords, destination, apiKey);
+
+          RouteInfo? routeInfo;
+          if (sharedProvider.driverStatus == DriverRideStatus.goingToPickUp) {
+            routeInfo = await SharedService.getRoutePolylinePoints(
+                driverCoords, destination, apiKey);
+          }
+
           if (routeInfo == null) {
             return;
           }
@@ -555,7 +568,7 @@ class RequestDriverViewModel extends ChangeNotifier {
 
             sharedProvider.fitMarkers(driverCoords, destination);
           }
-          if (sharedProvider.driverModel != null) {
+          if (sharedProvider.driverInformation != null) {
             sharedProvider.polylineFromPickUpToDropOff = Polyline(
               polylineId: const PolylineId("pickUpToDropoff"),
               points: routeInfo.polylinePoints,
@@ -571,8 +584,8 @@ class RequestDriverViewModel extends ChangeNotifier {
   }
 
   //LISTENER: To listen every status of the driver
-  void _listenToDriverStatus(
-      String driverId, SharedProvider sharedProvider) async {
+  void _listenToDriverStatus(String driverId, SharedProvider sharedProvider,
+      BuildContext context) async {
     //GEt our id
     final passengerId = FirebaseAuth.instance.currentUser?.uid;
     if (passengerId == null) {
@@ -613,6 +626,8 @@ class RequestDriverViewModel extends ChangeNotifier {
               sharedProvider.driverStatus = DriverRideStatus.goingToDropOff;
               sharedProvider.routeDuration = null;
               sharedUtil.stopAudioLoop();
+              sharedProvider.polylineFromPickUpToDropOff =
+                  const Polyline(polylineId: PolylineId("default"));
               //  sharedProvider.topMessage = 'En marcha, vamos!!';
               break;
             case DriverRideStatus.finished:
@@ -623,25 +638,39 @@ class RequestDriverViewModel extends ChangeNotifier {
               break;
             case DriverRideStatus.canceled:
               sharedUtil.stopAudioLoop();
+              cancelDriverListeners();
               await RequestDriverService.removeDriverIdTemporally(passengerId);
               sharedProvider.driverStatus = DriverRideStatus.canceled;
-              cancelDriverListeners();
-              //Return to normal state of the appp
-
               timefromTaxiToPickUp = null;
 
-              sharedProvider.driverModel = null;
               sharedProvider.pickUpCoordenates = null;
               sharedProvider.pickUpLocation = null;
               sharedProvider.routeDuration = null;
               sharedProvider.markers.clear();
               sharedProvider.polylineFromPickUpToDropOff =
                   const Polyline(polylineId: PolylineId("default"));
-              ToastMessageUtil.showToast("El viaje ha sido cancelado");
+              //Show Toast Message
+              if (context.mounted) {
+                ToastMessageUtil.showToast(
+                    "El viaje ha sido cancelado", context);
+              }
+              //Animate camerar to currento position
               if (sharedProvider.passengerCurrentCoords != null) {
                 sharedProvider.animateCameraToPosition(
                     sharedProvider.passengerCurrentCoords!);
               }
+              //Send push notification to the driver
+              final driver = sharedProvider.passenger;
+              final deviceToken = sharedProvider.driverInformation?.deviceToken;
+              if (deviceToken != null) {
+                await PushNotificationService.sendPushNotification(
+                  deviceToken: deviceToken,
+                  title: '❌CANCELADO',
+                  body: '${driver?.name ?? 'Se'} ha cancelado la carrera',
+                );
+              }
+              sharedProvider.driverInformation = null;
+
               break;
             default:
               logger.e("Driver Status not found..");
@@ -660,15 +689,15 @@ class RequestDriverViewModel extends ChangeNotifier {
     //  driverPositionListener?.cancel();
     //Rate the driver
     timefromTaxiToPickUp = null;
-    if (sharedProvider.driverModel != null) {
+    if (sharedProvider.driverInformation != null) {
       showStarRatingsBottomSheet(
         sharedProvider.mapPageContext!,
-        sharedProvider.driverModel!.id,
+        sharedProvider.driverInformation!.id,
       );
     }
 
     //Return to normal state of the appp
-    sharedProvider.driverModel = null;
+    sharedProvider.driverInformation = null;
     sharedProvider.pickUpCoordenates = null;
     sharedProvider.pickUpLocation = null;
     sharedProvider.routeDuration = null;
