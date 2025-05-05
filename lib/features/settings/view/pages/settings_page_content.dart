@@ -3,6 +3,7 @@ import 'package:ionicons/ionicons.dart';
 import 'package:logger/logger.dart';
 import 'package:passenger_app/core/utils/dialog_util.dart';
 import 'package:passenger_app/features/auth/view/pages/auth_wrapper.dart';
+import 'package:passenger_app/features/auth/view/pages/splash_screen_page.dart';
 import 'package:passenger_app/features/home/repositories/home_services.dart';
 import 'package:passenger_app/features/settings/view/widgets/delete_account_dialog.dart';
 
@@ -25,7 +26,7 @@ class SettingsPageContent extends StatelessWidget {
                 color: Theme.of(context)
                     .colorScheme
                     .inversePrimary
-                    .withOpacity(0.2),
+                    .withValues(alpha: 0.2),
                 blurRadius: 1,
                 offset: const Offset(0, 5), // creates the soft blur effect
               ),
@@ -67,7 +68,7 @@ class SettingsPageContent extends StatelessWidget {
                         Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const AuthWrapper(),
+                              builder: (context) => const SplashScreen(),
                             ),
                             (route) => false);
                       }

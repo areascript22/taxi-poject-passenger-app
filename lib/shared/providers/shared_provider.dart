@@ -162,6 +162,14 @@ class SharedProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  //FUNCIONS
+  //Clera polylines
+  void clearPolylinePickUpToDropOff() {
+    _polylineFromPickUpToDropOff =
+        const Polyline(polylineId: PolylineId("default"));
+    notifyListeners();
+  }
+
   //To update profile values
   void updatePassenger(Map valuesToUpdate) {
     if (valuesToUpdate['name'] != null) {

@@ -37,18 +37,18 @@ class _DriverBottomCardState extends State<DriverBottomCard> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               //TEST BUtton
-              CustomElevatedButton(
-                onTap: () async {
-                  logger.f(
-                      "Driver information: ${sharedProvider.driverInformation?.toMap()}");
-                  await PushNotificationService.sendPushNotification(
-                      deviceToken:
-                          "ePzNboH9TOKITeCcRtrB0m:APA91bF8J0PUWgEWSmRzDzfBDhhMyS6eWgyYnxran4ao2E7Oh1lZAOpnUnc42zUpHnN3DyjAQ4pnE5LO6ZtK975GoRHKpRDuIiG01GFtIFSM3n9BobbTtc4",
-                      title: "asdf",
-                      body: "ssdfasdfasfd");
-                },
-                child: Text("Test"),
-              ),
+              // CustomElevatedButton(
+              //   onTap: () async {
+              //     logger.f(
+              //         "Driver information: ${sharedProvider.driverInformation?.toMap()}");
+              //     await PushNotificationService.sendPushNotification(
+              //         deviceToken:
+              //             "ePzNboH9TOKITeCcRtrB0m:APA91bF8J0PUWgEWSmRzDzfBDhhMyS6eWgyYnxran4ao2E7Oh1lZAOpnUnc42zUpHnN3DyjAQ4pnE5LO6ZtK975GoRHKpRDuIiG01GFtIFSM3n9BobbTtc4",
+              //         title: "asdf",
+              //         body: "ssdfasdfasfd");
+              //   },
+              //   child: const  Text("Test"),
+              // ),
               //
               CircularButton(
                 onPressed: () {
@@ -85,7 +85,7 @@ class _DriverBottomCardState extends State<DriverBottomCard> {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
+                color: Colors.grey.withValues(alpha: 0.5),
                 spreadRadius: 5,
                 blurRadius: 7,
                 offset: const Offset(0, 3),

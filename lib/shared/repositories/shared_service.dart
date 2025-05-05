@@ -11,11 +11,12 @@ import 'package:passenger_app/shared/models/driver_model.dart';
 import 'package:passenger_app/shared/models/route_info.dart';
 
 class SharedService {
+  static final logger = Logger();
   //It returns a route as polylines (it is use to update polyline in Porvider)
   //It returns a route as polylines (it is use to update polyline in Porvider)
   static Future<RouteInfo?> getRoutePolylinePoints(
       LatLng start, LatLng end, String apiKey) async {
-    final Logger logger = Logger();
+    logger.f("Calling DIRECTIONS API");
 
     PolylinePoints polylinePoints = PolylinePoints();
     List<LatLng> routePoints = [];

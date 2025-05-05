@@ -14,8 +14,8 @@ class AboutUsPage extends StatelessWidget {
         ),
         iconTheme: const IconThemeData(color: Colors.purple),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
+      body: const Padding(
+        padding: EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
@@ -24,7 +24,7 @@ class AboutUsPage extends StatelessWidget {
             //   height: 200,
             //   width: 200,
             // ),
-            const Text(
+             Text(
               "asdfasfdasdf",
             ),
           ],

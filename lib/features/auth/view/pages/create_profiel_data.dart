@@ -100,14 +100,32 @@ class _CreateProfileDataState extends State<CreateProfileData> {
                       },
                     );
                   },
-                  child: CircleAvatar(
-                    radius: 90,
-                    backgroundColor: Colors.transparent,
-                    backgroundImage: _imageFile != null
-                        ? FileImage(_imageFile!)
-                        : const AssetImage('assets/img/default_profile.png')
-                            as ImageProvider,
-                    child: const SizedBox(),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        //color: Colors.black,
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(100)),
+                        boxShadow: [
+                          BoxShadow(
+                            spreadRadius: 5,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .secondary
+                                .withValues(alpha: 1),
+                            offset: const Offset(2, 3),
+                            blurRadius: 5,
+                          )
+                        ]),
+                    child: CircleAvatar(
+                      radius: 90,
+                      backgroundColor: Colors.transparent,
+                      backgroundImage: _imageFile != null
+                          ? FileImage(_imageFile!)
+                          : const AssetImage('assets/img/default_profile.png')
+                              as ImageProvider,
+                      child: const SizedBox(),
+                    ),
                   ),
                 ),
                 if (showImageSelectError)
@@ -179,6 +197,8 @@ class _CreateProfileDataState extends State<CreateProfileData> {
                   padding: const EdgeInsets.only(bottom: 10),
                   child: CustomElevatedButton(
                     onTap: () async {
+                      //Unfocuss keyboard
+                      FocusScope.of(context).unfocus();
                       //check if there is an image selected, otherwise we return
                       setState(() {
                         showImageSelectError = (_imageFile == null);
@@ -229,17 +249,12 @@ class _CreateProfileDataState extends State<CreateProfileData> {
 
                           if (context.mounted) {
                             Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const PassengerDataWrapper(),
-                                ));
-                            // Navigator.push(
-                            //   context,
-                            //   MaterialPageRoute(
-                            //     builder: (context) => const PassengerApp(),
-                            //   ),
-                            // );
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const PassengerDataWrapper(),
+                              ),
+                            );
                           }
                         } else {
                           setState(() {

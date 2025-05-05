@@ -16,7 +16,7 @@ class WitingForDriverOverlay extends StatelessWidget {
     return PopScope(
       canPop: false,
       child: Container(
-        color: Colors.black.withOpacity(0.7), // Semi-transparent background
+        color: Colors.black.withValues(alpha: 0.7), // Semi-transparent background
         child: Center(
           child: Container(
             width: 400,
@@ -61,7 +61,7 @@ void showWaitingForDriverOverlay(
   showDialog(
     context: context,
     builder: (context) {
-      return WitingForDriverOverlay();
+      return const WitingForDriverOverlay();
     },
   );
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 
 class AppCheckVerified extends StatefulWidget {
-  const AppCheckVerified({Key? key}) : super(key: key);
+  const AppCheckVerified({super.key});
 
   @override
   State<AppCheckVerified> createState() => _AppCheckVerifiedState();
@@ -21,19 +21,25 @@ class _AppCheckVerifiedState extends State<AppCheckVerified> {
     try {
       final tokenResult = await FirebaseAppCheck.instance.getToken(true);
       if (tokenResult!.isNotEmpty) {
-        setState(() {
-          _isValid = true;
-        });
+        if (mounted) {
+          setState(() {
+            _isValid = true;
+          });
+        }
       } else {
+        if (mounted) {
+          setState(() {
+            _isValid = false;
+          });
+        }
+      }
+    } catch (e) {
+      // Error significa que no se puede obtener el token
+      if (mounted) {
         setState(() {
           _isValid = false;
         });
       }
-    } catch (e) {
-      // Error significa que no se puede obtener el token
-      setState(() {
-        _isValid = false;
-      });
     }
   }
 

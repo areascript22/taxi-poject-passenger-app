@@ -32,12 +32,12 @@ class SharedUtil {
 
   //Play audio
   Future<void> playAudio(String filePath) async {
-    bool? response = await Vibration.hasVibrator();
-    if (response != null && response) {
+    bool response = await Vibration.hasVibrator();
+    if (response) {
       Vibration.vibrate();
     }
     if (filePath.isEmpty) {
-      logger.e("Audio URL is empty: ${filePath}.aac");
+      logger.e("Audio URL is empty: $filePath.aac");
       return;
     }
     try {

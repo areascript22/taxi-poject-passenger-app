@@ -20,7 +20,7 @@ class CircularButton extends StatelessWidget {
         shape: BoxShape.circle, // Optional: make it circular
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1), // Shadow color with opacity
+            color: Colors.black.withValues (alpha: 0.1), // Shadow color with opacity
             blurRadius: 6, // Spread of the shadow
             offset:
                 const Offset(0, 2), // Shadow position (horizontal, vertical)

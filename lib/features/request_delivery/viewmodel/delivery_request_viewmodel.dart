@@ -30,6 +30,7 @@ class DeliveryRequestViewModel extends ChangeNotifier {
   bool _loading = false;
   DeliveryDetailsModel? _deliveryDetailsModel;
   String requestTypeTemp = RequestType.byCoordinates; //Value by default
+  String? _duration;
 
   //Listeners
   StreamSubscription<DatabaseEvent>? driverStatusListener;
@@ -41,6 +42,7 @@ class DeliveryRequestViewModel extends ChangeNotifier {
   //GETTERS
   bool get loading => _loading;
   DeliveryDetailsModel? get deliveryDetailsModel => _deliveryDetailsModel;
+  String? get duration => _duration;
 
   // SETTERS
   set loading(bool value) {
@@ -50,6 +52,11 @@ class DeliveryRequestViewModel extends ChangeNotifier {
 
   set deliveryDetailsModel(DeliveryDetailsModel? value) {
     _deliveryDetailsModel = value;
+    notifyListeners();
+  }
+
+  set duration(String? value) {
+    _duration = value;
     notifyListeners();
   }
 
@@ -106,7 +113,6 @@ class DeliveryRequestViewModel extends ChangeNotifier {
       String passengerId, SharedProvider sharedProvider, BuildContext context) {
     final databaseRef =
         FirebaseDatabase.instance.ref('delivery_requests/$passengerId/driver');
-
     try {
       driverAcceptanceListener =
           databaseRef.onValue.listen((DatabaseEvent event) async {
@@ -315,24 +321,6 @@ class DeliveryRequestViewModel extends ChangeNotifier {
               return;
             }
             destination = sharedProvider.passengerCurrentCoords!;
-          }
-
-          RouteInfo? routeInfo = await SharedService.getRoutePolylinePoints(
-              driverCoords, destination, apiKey);
-
-          if (routeInfo != null) {
-            // if (sharedProvider.routeDuration != null) {
-            //   sharedProvider.routeDuration =
-            //       SharedHelpers.extractMinutes(routeInfo.duration);
-            // }
-            if (sharedProvider.driverInformation != null) {
-              sharedProvider.polylineFromPickUpToDropOff = Polyline(
-                polylineId: const PolylineId("pickUpToDropoff"),
-                points: routeInfo.polylinePoints,
-                width: 5,
-                color: Colors.blue,
-              );
-            }
           }
         }
       });

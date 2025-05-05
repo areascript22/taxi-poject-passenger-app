@@ -31,7 +31,7 @@ class _BSElevatedButtonState extends State<BSElevatedButton> {
         shadowColor: Theme.of(context)
             .colorScheme
             .inversePrimary
-            .withOpacity(0.65), // Color de la sombra
+            .withValues(alpha: 0.65), // Color de la sombra
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),

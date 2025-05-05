@@ -52,14 +52,14 @@ class _DriverArrivedBottomSheetState extends State<DriverArrivedBottomSheet> {
           children: [
             //Message "I have arrived"
             Text(
-              '${driverModel!.name} ha llegado',
+              '${driverModel?.name ?? 'El conductor'} ha llegado',
               style: const TextStyle(
                 fontSize: 18,
               ),
             ),
             //Vehicle model
             Text(
-              driverModel.vehicleModel,
+              driverModel?.vehicleModel ?? 'Modelo',
               style: const TextStyle(fontSize: 17),
             ),
             const SizedBox(height: 20),
@@ -81,10 +81,17 @@ class _DriverArrivedBottomSheetState extends State<DriverArrivedBottomSheet> {
                 Expanded(
                   child: CustomElevatedButton(
                     onTap: () async {
-                      requestDriverViewModel.updateDriverStatus(
+                      //  Check if ride is already canceled
+                      if (sharedProvider.driverInformation != null &&
+                          sharedProvider.driverStatus ==
+                              DriverRideStatus.arrived) {
+                        await requestDriverViewModel.updateDriverStatus(
                           sharedProvider.driverInformation!.id,
                           DriverRideStatus.goingToDropOff,
-                          context);
+                          context,
+                        );
+                      }
+
                       countDownTimer.cancel();
                       if (context.mounted) {
                         Navigator.pop(context);

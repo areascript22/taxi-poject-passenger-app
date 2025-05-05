@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:passenger_app/features/auth/view/pages/auth_wrapper.dart';
+import 'package:passenger_app/features/auth/view/pages/splash_screen_page.dart';
 import 'package:passenger_app/features/home/repositories/home_services.dart';
 import 'package:passenger_app/features/settings/repositorie/settings_repositorie.dart';
 
@@ -29,7 +30,7 @@ class SettingsViewModel extends ChangeNotifier {
       Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (context) => const AuthWrapper(),
+            builder: (context) => const SplashScreen(),
           ),
           (route) => false);
     }

@@ -224,7 +224,7 @@ class _RequestDriverByAudioState extends State<RequestDriverByAudio> {
   String formatTime(Duration duration) {
     String twoDigitSeconds =
         duration.inSeconds.remainder(60).toString().padLeft(1, "0");
-    String formatedTime = "${duration.inMinutes}: ${twoDigitSeconds}";
+    String formatedTime = "${duration.inMinutes}: $twoDigitSeconds";
     return formatedTime;
   }
 

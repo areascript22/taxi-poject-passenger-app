@@ -16,6 +16,7 @@ class ByTextDeliveryRequest extends StatelessWidget {
     final deliveryRequestViewModel =
         Provider.of<DeliveryRequestViewModel>(context);
     final sharedProvider = Provider.of<SharedProvider>(context);
+    final focusNode = FocusNode();
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -35,6 +36,7 @@ class ByTextDeliveryRequest extends StatelessWidget {
           //Textfield
           const SizedBox(height: 10),
           TextField(
+            focusNode: focusNode,
             controller: deliveryRequestViewModel.deliveryTextController,
             maxLines: 4, // Limits visible lines to 5
             keyboardType: TextInputType.multiline,
@@ -51,9 +53,12 @@ class ByTextDeliveryRequest extends StatelessWidget {
           const SizedBox(height: 7),
           CustomElevatedButton(
             onTap: () async {
-              if (deliveryRequestViewModel.deliveryTextController.text.length < 15) {
+              focusNode.unfocus();
+              if (deliveryRequestViewModel.deliveryTextController.text.length <
+                  15) {
                 ToastMessageUtil.showToast(
-                    "Texto muy corto. Escribe al menos 15 caracteres.",context);
+                    "Texto muy corto. Escribe al menos 15 caracteres.",
+                    context);
                 return;
               }
               //Request the vehicle
@@ -61,7 +66,8 @@ class ByTextDeliveryRequest extends StatelessWidget {
                 context,
                 sharedProvider,
                 RequestType.byTexting,
-                indicationText: deliveryRequestViewModel.deliveryTextController.text,
+                indicationText:
+                    deliveryRequestViewModel.deliveryTextController.text,
               );
             },
             child: const Text("Solicitar taxi"),

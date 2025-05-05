@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 
 class PhoneNumberField extends StatefulWidget {
   final TextEditingController textController;
-  const PhoneNumberField({super.key, required this.textController});
+  final FocusNode focusNode;
+  const PhoneNumberField({
+    super.key,
+    required this.textController,
+    required this.focusNode,
+  });
 
   @override
   State<PhoneNumberField> createState() => _PhoneNumberFieldState();
@@ -12,6 +17,7 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      focusNode: widget.focusNode,
       controller: widget.textController,
       keyboardType: TextInputType.number,
       decoration: InputDecoration(

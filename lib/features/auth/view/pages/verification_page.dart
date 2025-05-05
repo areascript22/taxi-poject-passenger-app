@@ -66,10 +66,14 @@ class _VerificationPageState extends State<VerificationPage> {
     final passengerViewModel = Provider.of<PassengerViewModel>(context);
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(onPressed: ()async{
-          Navigator.pop(context);
-          await VerificationStorage.clearVerificationId();
-        }, icon: const Icon(Icons.arrow_back)),
+        leading: IconButton(
+            onPressed: () async {
+              if (mounted) {
+                Navigator.pop(context);
+              }
+              await VerificationStorage.clearVerificationId();
+            },
+            icon: const Icon(Icons.arrow_back)),
       ),
       body: PopScope(
         canPop: true,
@@ -90,7 +94,7 @@ class _VerificationPageState extends State<VerificationPage> {
                 ),
                 const SizedBox(height: 10),
                 //Info banner
-                InfoBanner(),
+                const InfoBanner(),
                 //Texfiel de verificacion
                 const SizedBox(height: 10),
                 CustomTextField(
@@ -136,22 +140,21 @@ class _VerificationPageState extends State<VerificationPage> {
                 const SizedBox(height: 10),
                 if (_canResend)
                   GestureDetector(
-                    onTap: () async { 
+                    onTap: () async {
                       passengerViewModel.verificationId = null;
                       final response = await passengerViewModel
                           .requestSMSViaWhatsApp(context);
-                      if(context.mounted){
+                      if (context.mounted) {
                         if (response) {
                           ToastMessageUtil.showToast(
-                              "Código de verificación enviado a su WhatsApp",context);
+                              "Código de verificación enviado a su WhatsApp",
+                              context);
                         } else {
                           ToastMessageUtil.showToast(
-                              "Intenta enviar el código de nuevo",context);
+                              "Intenta enviar el código de nuevo", context);
                           Navigator.pop(context);
-
                         }
                       }
-
                     },
                     child: !passengerViewModel.loading2
                         ? const Text(

@@ -26,6 +26,7 @@ class _SignInPageState extends State<SignInPage> {
   final TextEditingController textController = TextEditingController();
   bool isloading = false;
   bool showAlertMessage = false;
+  final FocusNode focusNode = FocusNode();
 
   @override
   void initState() {
@@ -53,7 +54,16 @@ class _SignInPageState extends State<SignInPage> {
   //listneer
   void _onTextChanged() {
     showAlertMessage = false;
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    textController.dispose();
+    focusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -69,7 +79,7 @@ class _SignInPageState extends State<SignInPage> {
       });
 
       await FirebaseAuth.instance.verifyPhoneNumber(
-        timeout: const Duration(seconds: 60),
+        timeout: const Duration(seconds: 30),
         phoneNumber: "+593${textController.text}",
         // ✅ Auto-verification (No OTP needed)
         verificationCompleted: (PhoneAuthCredential credential) async {
@@ -81,7 +91,7 @@ class _SignInPageState extends State<SignInPage> {
               "Verification completed: ${credential.smsCode}, ${credential.verificationId}");
           try {
             await FirebaseAuth.instance.signInWithCredential(credential);
-
+            await VerificationStorage.clearVerificationId();
             _logger.i("✅ Auto-sign-in successful!");
             print("✅ Auto-sign-in successful!");
             ToastMessageUtil.showToast("Inicio de sesión exitoso", context);
@@ -140,10 +150,12 @@ class _SignInPageState extends State<SignInPage> {
               return;
             }
             //try log in with custom token
-            final resp = await passengerViewModel
-                .verifyPhoneAndLogin(textController.text);
-            if (resp) {
-              errorMessage = "Iniciando sesión";
+            if (context.mounted) {
+              final resp = await passengerViewModel.signInWithCustomToken(
+                  textController.text, context);
+              if (resp) {
+                errorMessage = "Iniciando sesión";
+              }
             }
           }
           if (context.mounted) {
@@ -162,6 +174,7 @@ class _SignInPageState extends State<SignInPage> {
           _logger.i("📩 Código enviado: $verificationId");
           print("📩 Código enviado: $verificationId");
           //Save verification id locally
+
           await VerificationStorage.saveVerificationId(verificationId);
 
           setState(() {
@@ -180,7 +193,19 @@ class _SignInPageState extends State<SignInPage> {
         // ⏳ Timeout reached (OTP must be entered manually)
         codeAutoRetrievalTimeout: (String verificationId) async {
           _logger.w("⏳ Tiempo de espera agotado para auto-retrieval.");
-          print("⏳ Tiempo de espera agotado para auto-retrieval.");
+          print("⏳ Tiempo de espera agotado para auto-retrieval. ");
+          //close verification page
+          if (mounted) {
+            if (context.mounted) {
+              Navigator.pop(context);
+            }
+            //Log in with token to improve user xperience
+
+            await passengerViewModel.signInWithCustomToken(
+              textController.text,
+              context,
+            );
+          }
         },
       );
     }
@@ -198,8 +223,12 @@ class _SignInPageState extends State<SignInPage> {
         ToastMessageUtil.showToast("Ingrese un número válido", context);
         return;
       }
+      //   FocusScope.of(context).unfocus();
+
       DialogUtil.messageDialog(
         onAccept: () {
+          //UNfocuss keyboard
+          //  FocusScope.of(context).unfocus();
           //Send SMS
           signInWithPhone();
           //  signInWithCustomToken1();
@@ -208,6 +237,8 @@ class _SignInPageState extends State<SignInPage> {
         onCancel: () {
           //Pop the Dialog Util
           Navigator.pop(context);
+          //UNfocuss keyboard
+          // FocusScope.of(context).unfocus();
         },
         content: Column(
           children: [
@@ -233,7 +264,7 @@ class _SignInPageState extends State<SignInPage> {
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(),
       body: Center(
         child: Padding(
@@ -257,20 +288,11 @@ class _SignInPageState extends State<SignInPage> {
                       "Te enviaremos un código para verificar tu número de telefono",
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
-
-                    //boton prueba
-                    // CustomElevatedButton(
-                    //     onTap: () {
-                    //       passengerViewModel.phoneNumber = '967340047';
-                    //       passengerViewModel.requestSMSViaWhatsApp(context);
-                    //     },
-                    //     child: const Text("Test")),
-
                     const SizedBox(height: 60),
-
                     //TextField
                     PhoneNumberField(
                       textController: textController,
+                      focusNode: focusNode,
                     ),
 
                     if (showAlertMessage)
@@ -289,8 +311,9 @@ class _SignInPageState extends State<SignInPage> {
                     CustomElevatedButton(
                       onTap: !isloading
                           ? () async {
-                              // FocusScope.of(context).unfocus();
+                              focusNode.unfocus();
                               confirmSendSMS();
+                              // FocusScope.of(context).unfocus();
                               //test
                               // passengerViewModel.verifyPhoneAndLogin(textController.text);
                               //  final logger = Logger();

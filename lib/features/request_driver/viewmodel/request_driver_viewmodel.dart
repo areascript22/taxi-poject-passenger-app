@@ -87,121 +87,14 @@ class RequestDriverViewModel extends ChangeNotifier {
           FirebaseDatabase.instance.ref('drivers/$driverId/passenger');
       sharedProvider.deliveryLookingForDriver = false;
       sharedUtil.playAudio("sounds/acepted_ride.mp3");
-      _listenToDriverStatus(driverId, sharedProvider, context);
+      if (context.mounted) {
+        _listenToDriverStatus(driverId, sharedProvider, context);
+      }
       _listenToDriverCoordenates(driverModel.information.id, sharedProvider);
-      //SAVE TO DRIVER ID
-      // await RequestDriverService.saveDriverIdTemporally(
-      //     sharedProvider.passenger!.id!, driverId);
     } else {
       logger.f("Ther is not driver: ${event.snapshot.value}");
     }
   }
-
-  //Request Driver
-  // void requestTaxi(
-  //   BuildContext context,
-  //   SharedProvider sharedProvider,
-  //   String requestType, {
-  //   String? audioFilePath,
-  //   String? indicationText,
-  // }) async {
-  //   //Display the overlay
-  //   OverlayEntry? overlayEntry;
-  //   final overlay = Overlay.of(context);
-  //   overlayEntry = OverlayEntry(
-  //     builder: (context) => const LoadingOverlay(),
-  //   );
-  //   overlay.insert(overlayEntry);
-  //   //// CHECK IF I AM AUTHENTICATED
-  //   User? user = FirebaseAuth.instance.currentUser;
-  //   if (user == null) {
-  //     logger.e("Error, user not authenticated");
-  //     overlayEntry.remove();
-  //     return;
-  //   }
-  //   //Define origin coords
-  //   LatLng origin;
-  //   if (requestType == RequestType.byCoordinates) {
-  //     if (sharedProvider.pickUpCoordenates == null) {
-  //       ToastMessageUtil.showToast(
-  //           "Seleccióna tu ubicación antes de solicitar tu táxi");
-  //       overlayEntry.remove();
-  //       return;
-  //     }
-  //     origin = sharedProvider.pickUpCoordenates!;
-  //   } else {
-  //     if (sharedProvider.passengerCurrentCoords == null) {
-  //       ToastMessageUtil.showToast(
-  //           "Sin señal GPS, no podemos encontrarte en el mapa");
-  //       overlayEntry.remove();
-  //       return;
-  //     }
-  //     origin = sharedProvider.passengerCurrentCoords!;
-  //   }
-
-  //   //Chech if i am within the Radius for the Taxi Stand (2.5 km)
-  //   double startLat = origin.latitude;
-  //   double startLng = origin.longitude;
-  //   double endLat = ConfigurationFile.taxiStandCoords.latitude;
-  //   double endLng = ConfigurationFile.taxiStandCoords.longitude;
-  //   double distanceResponse =
-  //       _calculateDistance(startLat, startLng, endLat, endLng);
-  //   String? driverAssignedId;
-  //   if (distanceResponse <= 2500) {
-  //     //TRY TO GET THE FIRST DRIVER FROM QUEUE
-  //     logger.f("SEARCHING IN THE QUEUE");
-  //     driverAssignedId =
-  //         await RequestDriverService.claimAndGetOldestDriverKey();
-  //   }
-  //   //TRY TO GET THE NEAREST AVAILABLE DRIVER
-  //   if (driverAssignedId == null || distanceResponse > 2500) {
-  //     logger.f("SEARCHING NEARESTl: ${sharedProvider.passengerCurrentCoords}");
-  //     if (sharedProvider.passengerCurrentCoords != null) {
-  //       driverAssignedId =
-  //           await _findNearestDriver(sharedProvider.passengerCurrentCoords!);
-  //       logger.f("DRIVERASSIGNEDiD: ${driverAssignedId}");
-  //     }
-  //   }
-
-  //   //
-  //   DriverModel? driverInfo;
-  //   bool passengerNodeUpdated = false;
-  //   //WE FIND A DRIVER WHETER FROM QUUE OR THE  NEAREST ONE
-  //   if (driverAssignedId != null) {
-  //     driverInfo =
-  //         await SharedService.getDriverInformationById(driverAssignedId);
-  //     passengerNodeUpdated = await RequestDriverService.updatePassengerNode(
-  //       driverAssignedId,
-  //       driverInfo?.information.deviceToken,
-  //       sharedProvider,
-  //       requestType,
-  //       'passenger',
-  //       audioFilePath: audioFilePath,
-  //       indicationText: indicationText,
-  //     );
-  //   }
-  //   //THERE ARE NO AVAILABLE DRIVERS IN THE QUEUE OR IN THE MAP
-  //   if (driverAssignedId == null) {
-  //     await addDriverRequestToQueue(
-  //       sharedProvider,
-  //       requestType,
-  //       audioFilePath: audioFilePath,
-  //       indicationText: indicationText,
-  //     );
-  //   }
-
-  //   //Move to Operation mode
-  //   if (passengerNodeUpdated && driverInfo != null) {
-  //     referenceToCancelRide =
-  //         FirebaseDatabase.instance.ref('drivers/$driverAssignedId/passenger');
-  //     sharedUtil.makePhoneVibrate();
-  //     sharedProvider.driverModel = driverInfo.information;
-  //     _listenToDriverStatus(driverInfo.information.id, sharedProvider);
-  //     _listenToDriverCoordenates(driverInfo.information.id, sharedProvider);
-  //   }
-  //   //Remove overlay when it's all comleted
-  //   overlayEntry.remove();
-  // }
 
 //Request Driver
   void requestTaxi2(
@@ -326,7 +219,6 @@ class RequestDriverViewModel extends ChangeNotifier {
           referenceToCancelRide =
               FirebaseDatabase.instance.ref('drivers/$driverId/passenger');
         }
-
         //Move to Operation mode
         if (passengerNodeUpdated && driverModel != null) {
           sharedProvider.deliveryLookingForDriver = false;
@@ -342,174 +234,6 @@ class RequestDriverViewModel extends ChangeNotifier {
       }
     });
   }
-
-  //Add driver requuest to queue: Only if There aren't vehicles available
-  Future<void> addDriverRequestToQueue(
-    SharedProvider sharedProvider,
-    BuildContext context,
-    String requestType, {
-    String? audioFilePath,
-    String? indicationText,
-  }) async {
-    //Get current locatino adress
-    String? currentLocation = await MapServices.getReadableAddress(
-        sharedProvider.passengerCurrentCoords!.latitude,
-        sharedProvider.passengerCurrentCoords!.longitude,
-        apiKey);
-    //Add driver request to the pending ride queue
-    bool driverRequestSuccess =
-        await RequestDriverService.addDriverRequestToQueue(
-            sharedProvider, currentLocation ?? '');
-    if (!driverRequestSuccess) {
-      return;
-    }
-    sharedProvider.deliveryLookingForDriver = true;
-    final databaseRef = FirebaseDatabase.instance
-        .ref('driver_requests/${sharedProvider.passenger!.id}/driver');
-
-    //start listener to check if a driver has accepted
-    driverAcceptanceListener = databaseRef.onValue.listen((event) async {
-      if (event.snapshot.exists) {
-        String? driverId = event.snapshot.value as String?;
-        if (driverId == null) {
-          return;
-        }
-        sharedProvider.deliveryLookingForDriver = false;
-
-        //CHECK IF DRIVER IS AVAILABLE OR IN PROGRESS
-        bool passengerNodeUpdated = false;
-        DriverModel? driverModel =
-            await SharedService.getDriverInformationById(driverId);
-        if (driverModel != null) {
-          sharedProvider.driverInformation = driverModel.information;
-          if (driverModel.status == "reserved") {
-            passengerNodeUpdated =
-                await RequestDriverService.updatePassengerNode(
-              driverId,
-              driverModel.information.deviceToken,
-              sharedProvider,
-              requestType,
-              'passenger',
-              audioFilePath: audioFilePath,
-              indicationText: indicationText,
-            );
-            referenceToCancelRide =
-                FirebaseDatabase.instance.ref('drivers/$driverId/passenger');
-
-            _listenToDriverStatus(driverId, sharedProvider, context);
-          } else {
-            passengerNodeUpdated =
-                await RequestDriverService.updatePassengerNode(
-              driverId,
-              driverModel.information.deviceToken,
-              sharedProvider,
-              requestType,
-              'secondPassenger',
-              audioFilePath: audioFilePath,
-              indicationText: indicationText,
-            );
-            referenceToCancelRide = FirebaseDatabase.instance
-                .ref('drivers/$driverId/secondPassenger');
-          }
-        }
-
-        //Move to Operation mode
-        if (passengerNodeUpdated && driverModel != null && context.mounted) {
-          sharedProvider.driverInformation = driverModel.information;
-          _listenToPassengerIdChanges(
-              driverId, sharedProvider.passenger!.id!, sharedProvider, context);
-          _listenToDriverCoordenates(
-              driverModel.information.id, sharedProvider);
-        }
-      }
-    });
-  }
-
-  //Listen when Our request pass to be the Current ride
-  void _listenToPassengerIdChanges(String driverId, String passengerId,
-      SharedProvider sharedProvider, BuildContext context) {
-    final databaseRef = FirebaseDatabase.instance.ref();
-    // Define the path to listen for passengerId changes
-    final passengerIdPath =
-        databaseRef.child('drivers/$driverId/passenger/$passengerId');
-    passengerIdChangesListener =
-        passengerIdPath.onValue.listen((DatabaseEvent event) {
-      if (event.snapshot.value != null) {
-        String passengerIdTemp = event.snapshot.value.toString();
-        // Check if the passengerId matches "123456"
-        if (passengerIdTemp == passengerId) {
-          logger.f("Listen ID changes ");
-          _listenToDriverStatus(driverId, sharedProvider, context);
-        }
-      }
-    });
-  }
-
-  //get the nearest driver
-  // Future<String?> _findNearestDriver(LatLng userLocation) async {
-  //   final DatabaseReference driversRef =
-  //       FirebaseDatabase.instance.ref('drivers');
-  //   final drivers = await RequestDriverService.fetchAvailableDrivers();
-  //   logger.f("FIND NEAREST: $drivers");
-  //   if (drivers.isEmpty) return null;
-
-  //   //Sort Drivers
-  //   drivers.sort((a, b) {
-  //     final double distanceA = _calculateDistance(
-  //       userLocation.latitude,
-  //       userLocation.longitude,
-  //       a['latitude'],
-  //       a['longitude'],
-  //     );
-  //     final double distanceB = _calculateDistance(
-  //       userLocation.latitude,
-  //       userLocation.longitude,
-  //       b['latitude'],
-  //       b['longitude'],
-  //     );
-  //     return distanceA.compareTo(distanceB);
-  //   });
-  //   // Map<String, dynamic>? nearestDriver;
-  //   // double minDistance = double.infinity;
-
-  //   for (final item in drivers) {
-  //     final String driverId = item['driverID'];
-  //     //Run transaction
-  //     // Force a read to ensure data is loaded
-  //     int retries = 3; // Max retry attempts
-  //     while (retries > 0) {
-  //       await Future.delayed(const Duration(milliseconds: 500));
-  //       final TransactionResult transactionResult =
-  //           await driversRef.child(driverId).runTransaction(
-  //         (value) {
-  //           if (value == null) {
-  //             retries--;
-  //             return Transaction.abort();
-  //           }
-  //           final Map<dynamic, dynamic> driverData = Map.from(value as Map);
-  //           if (driverData['status_availability'] != 'pending_online') {
-  //             return Transaction.abort();
-  //           }
-  //           driverData['status'] = "reserved";
-  //           driverData['status_availability'] = "reserved_online";
-  //           return Transaction.success(driverData);
-  //         },
-  //       );
-  //       if (transactionResult.committed) {
-  //         return driverId; // Return the claimed driver's ID
-  //       }
-  //     }
-  //   }
-
-  //   return null;
-  // }
-
-//HELPER: To calculate the distance between two coordinates
-  // double _calculateDistance(
-  //     double startLat, double startLng, double endLat, double endLng) {
-  //   return Geolocator.distanceBetween(
-  //       startLat, startLng, endLat, endLng); // Distance in meters
-  // }
 
   //LISTENER: To update TaxiMarker based on driver coordinates
   void _listenToDriverCoordenates(
@@ -550,31 +274,30 @@ class RequestDriverViewModel extends ChangeNotifier {
             }
             destination = sharedProvider.passengerCurrentCoords!;
           }
-
-          RouteInfo? routeInfo;
-          if (sharedProvider.driverStatus == DriverRideStatus.goingToPickUp) {
+          //Clean route
+          if (sharedProvider.polylineFromPickUpToDropOff.points.isNotEmpty) {
+            sharedProvider.clearPolylinePickUpToDropOff();
+          }
+          //Add Time duraion and First Route
+          if (timefromTaxiToPickUp == null) {
+            RouteInfo? routeInfo;
             routeInfo = await SharedService.getRoutePolylinePoints(
                 driverCoords, destination, apiKey);
-          }
-
-          if (routeInfo == null) {
-            return;
-          }
-          if (timefromTaxiToPickUp == null) {
+            if (routeInfo == null) return;
+            //Add Duration
             timefromTaxiToPickUp = routeInfo.duration;
-            logger.d("Route Duration: ${routeInfo.duration}");
             sharedProvider.routeDuration =
                 RequestDriverUtil.extractMinutes(routeInfo.duration);
-
             sharedProvider.fitMarkers(driverCoords, destination);
-          }
-          if (sharedProvider.driverInformation != null) {
-            sharedProvider.polylineFromPickUpToDropOff = Polyline(
-              polylineId: const PolylineId("pickUpToDropoff"),
-              points: routeInfo.polylinePoints,
-              width: 5,
-              color: Colors.blue,
-            );
+            //Add first route
+            if (sharedProvider.driverInformation != null) {
+              sharedProvider.polylineFromPickUpToDropOff = Polyline(
+                polylineId: const PolylineId("pickUpToDropoff"),
+                points: routeInfo.polylinePoints,
+                width: 5,
+                color: Colors.blue,
+              );
+            }
           }
         }
       });
@@ -592,11 +315,6 @@ class RequestDriverViewModel extends ChangeNotifier {
       logger.e("User is not authenticated");
       return;
     }
-    //Start foreground services
-    // if (!(await service.isRunning())) {
-    //   await service.startService();
-    //   service.invoke('setAsForeground', {'driverId': driverId});
-    // }
     //start listener
     final databaseRef =
         FirebaseDatabase.instance.ref('drivers/$driverId/status');
@@ -626,8 +344,7 @@ class RequestDriverViewModel extends ChangeNotifier {
               sharedProvider.driverStatus = DriverRideStatus.goingToDropOff;
               sharedProvider.routeDuration = null;
               sharedUtil.stopAudioLoop();
-              sharedProvider.polylineFromPickUpToDropOff =
-                  const Polyline(polylineId: PolylineId("default"));
+              sharedProvider.clearPolylinePickUpToDropOff();
               //  sharedProvider.topMessage = 'En marcha, vamos!!';
               break;
             case DriverRideStatus.finished:
@@ -647,8 +364,7 @@ class RequestDriverViewModel extends ChangeNotifier {
               sharedProvider.pickUpLocation = null;
               sharedProvider.routeDuration = null;
               sharedProvider.markers.clear();
-              sharedProvider.polylineFromPickUpToDropOff =
-                  const Polyline(polylineId: PolylineId("default"));
+              sharedProvider.clearPolylinePickUpToDropOff();
               //Show Toast Message
               if (context.mounted) {
                 ToastMessageUtil.showToast(
@@ -702,10 +418,7 @@ class RequestDriverViewModel extends ChangeNotifier {
     sharedProvider.pickUpLocation = null;
     sharedProvider.routeDuration = null;
     sharedProvider.markers.clear();
-    sharedProvider.polylineFromPickUpToDropOff = const Polyline(
-      polylineId: PolylineId("default"),
-      points: [],
-    );
+    sharedProvider.clearPolylinePickUpToDropOff();
     if (sharedProvider.passengerCurrentCoords != null) {
       await sharedProvider
           .animateCameraToPosition(sharedProvider.passengerCurrentCoords!);

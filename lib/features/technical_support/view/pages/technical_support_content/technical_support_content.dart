@@ -28,7 +28,7 @@ class _TechnicalSupportContentState extends State<TechnicalSupportContent> {
                 color: Theme.of(context)
                     .colorScheme
                     .inversePrimary
-                    .withOpacity(0.2),
+                    .withValues(alpha:  0.2),
                 blurRadius: 1,
                 offset: const Offset(0, 5), // creates the soft blur effect
               ),
