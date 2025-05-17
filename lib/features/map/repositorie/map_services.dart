@@ -15,7 +15,7 @@ class MapServices {
   static Future<String?> getReadableAddress(
       double latitude, double longitude, String apiKey) async {
     final Logger logger = Logger();
-    logger.f("Getting readable address ${apiKey}");
+    logger.f("Getting readable address $apiKey");
     final url = Uri.parse(
       'https://maps.googleapis.com/maps/api/geocode/json?latlng=$latitude,$longitude&key=$apiKey',
     );

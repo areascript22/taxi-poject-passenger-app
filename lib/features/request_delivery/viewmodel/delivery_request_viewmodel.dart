@@ -8,6 +8,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:logger/logger.dart';
 import 'package:passenger_app/core/utils/toast_message_util.dart';
+import 'package:passenger_app/features/home/viewmodel/home_view_model.dart';
 import 'package:passenger_app/features/request_delivery/model/delivery_details_model.dart';
 import 'package:passenger_app/features/request_delivery/repositorie/request_delivery_service.dart';
 import 'package:passenger_app/features/request_delivery/view/widgets/delivery_arrived_bottom_sheet.dart';
@@ -20,6 +21,7 @@ import 'package:passenger_app/shared/providers/shared_provider.dart';
 import 'package:passenger_app/shared/repositories/shared_service.dart';
 import 'package:passenger_app/shared/util/shared_util.dart';
 import 'package:passenger_app/shared/widgets/loading_overlay.dart';
+import 'package:provider/provider.dart';
 
 class DeliveryRequestViewModel extends ChangeNotifier {
   final String apiKey = Platform.isAndroid
@@ -83,6 +85,23 @@ class DeliveryRequestViewModel extends ChangeNotifier {
     overlay.insert(overlayEntry);
     // Create a DeliveryDetailsModel instance
     requestTypeTemp = requestType;
+
+    //Check if is there any issue
+    final homeVM = Provider.of<HomeViewModel>(context, listen: false);
+    //Cehck internet conection
+    if (!homeVM.isThereInternetConnection) {
+      ToastMessageUtil.showToast("Sin conexión a internet", context);
+      overlayEntry.remove();
+      return;
+    }
+    if (!homeVM.locationPermissionUserLevel ||
+        !homeVM.locationPermissionsSystemLevel) {
+      ToastMessageUtil.showToast(
+          "Activa los permisos de ubicación para continuar", context);
+      overlayEntry.remove();
+      return;
+    }
+
     try {
       loading = true;
       //get Passenger id

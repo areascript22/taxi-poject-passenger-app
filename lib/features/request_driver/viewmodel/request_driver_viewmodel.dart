@@ -8,6 +8,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:logger/logger.dart';
 import 'package:logger/web.dart';
 import 'package:passenger_app/core/utils/toast_message_util.dart';
+import 'package:passenger_app/features/auth/viewmodel/passenger_viewmodel.dart';
+import 'package:passenger_app/features/home/viewmodel/home_view_model.dart';
 import 'package:passenger_app/features/map/repositorie/map_services.dart';
 import 'package:passenger_app/features/request_driver/repositorie/request_driver_service.dart';
 import 'package:passenger_app/features/request_driver/utils/request_driver_util.dart';
@@ -21,6 +23,7 @@ import 'package:passenger_app/shared/repositories/push_notification_service.dart
 import 'package:passenger_app/shared/repositories/shared_service.dart';
 import 'package:passenger_app/shared/util/shared_util.dart';
 import 'package:passenger_app/shared/widgets/loading_overlay.dart';
+import 'package:provider/provider.dart';
 
 class RequestDriverViewModel extends ChangeNotifier {
   final Logger logger = Logger();
@@ -118,6 +121,22 @@ class RequestDriverViewModel extends ChangeNotifier {
       overlayEntry.remove();
       return;
     }
+    //Check if is there any issue
+    final homeVM = Provider.of<HomeViewModel>(context, listen: false);
+    //Cehck internet conection
+    if (!homeVM.isThereInternetConnection) {
+      ToastMessageUtil.showToast("Sin conexión a internet", context);
+      overlayEntry.remove();
+      return;
+    }
+    if (!homeVM.locationPermissionUserLevel ||
+        !homeVM.locationPermissionsSystemLevel) {
+      ToastMessageUtil.showToast(
+          "Activa los permisos de ubicación para continuar", context);
+      overlayEntry.remove();
+      return;
+    }
+
     //Define origin coords
     LatLng origin;
     if (requestType == RequestType.byCoordinates) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:passenger_app/features/auth/repositories/verification_id_storage.dart';
 import 'package:passenger_app/features/home/view/widgets/servicess_issue_alert.dart';
 import 'package:passenger_app/features/home/viewmodel/home_view_model.dart';
 import 'package:passenger_app/features/map/view/pages/map_page.dart';
@@ -21,6 +22,7 @@ class _PassengerAppState extends State<PassengerApp> {
   }
 
   void checkGpsPermissions() async {
+    VerificationStorage.clearVerificationId();
     final homeViewModel = Provider.of<HomeViewModel>(context, listen: false);
     final sharedProvider = Provider.of<SharedProvider>(context, listen: false);
     await homeViewModel.checkGpsPermissions(sharedProvider);
